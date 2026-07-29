@@ -1,10 +1,7 @@
 package com.audioplayer.project;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class ProjectApplicationTests {
+class ProjectApplicationTests extends IntegrationTestSupport {
 
 	@Test
 	void contextLoads() {

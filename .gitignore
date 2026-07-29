@@ -24,6 +24,10 @@ dev-env.sh
 .jwt-secret
 frontend/db.json
 
+# JWT key material
+*.pem
+*.pub
+
 # Angular / Node
 node_modules/
 dist/

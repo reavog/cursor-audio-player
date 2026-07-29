@@ -5,6 +5,16 @@ set -euo pipefail
 container="audio-player-db"
 session="audio-player"
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+development_environment="$project_root/dev-env.sh"
+
+if [ ! -f "$development_environment" ]; then
+  printf 'Development environment file not found: %s\n' "$development_environment" >&2
+  printf 'Create it from the setup instructions in README.md before starting the app.\n' >&2
+  exit 1
+fi
+
+# shellcheck source=dev-env.sh
+source "$development_environment"
 
 for command in docker tmux mvn npm; do
   if ! command -v "$command" >/dev/null 2>&1; then

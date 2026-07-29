@@ -25,6 +25,28 @@ Not every listed feature is complete yet. This README describes the direction of
 
 ## Running Locally
 
+Create your ignored development environment file from the template and set its database credentials:
+
+```bash
+cp dev-env.example.sh dev-env.sh
+```
+
+Generate an RSA key pair outside the repository, then load the local development environment:
+
+```bash
+install -d -m 700 "$HOME/.config/audio-player"
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 \
+  -out "$HOME/.config/audio-player/jwt-private.pem"
+openssl pkey -in "$HOME/.config/audio-player/jwt-private.pem" -pubout \
+  -out "$HOME/.config/audio-player/jwt-public.pem"
+chmod 600 "$HOME/.config/audio-player/jwt-private.pem"
+source ./dev-env.sh
+```
+
+`dev-env.sh` supplies the database credentials and matching JWT key locations. Never commit either
+key file; rotating the pair invalidates existing sign-in tokens. `start-dev.sh` loads this file
+automatically.
+
 Start the Spring Boot backend:
 
 ```bash
@@ -49,7 +71,7 @@ Start the Angular development server:
 cd frontend && npm start
 ```
 
-Current local PostgreSQL settings are configured in `src/main/resources/application.properties`. The default database is `audioplayer` on `localhost:5432`.
+Current local PostgreSQL settings are configured in `src/main/resources/application.yml`. The default database is `audioplayer` on `localhost:5432`.
 
 ## Project Notes
 

@@ -16,11 +16,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          public-key-location: classpath:my-public-key.pub
+          public-key-location: ${JWT_PUBLIC_KEY_LOCATION}
 
 app:
   jwt:
-    private-key-location: ${JWT_PRIVATE_KEY_LOCATION:classpath:my-private-key.pem}
+    private-key-location: ${JWT_PRIVATE_KEY_LOCATION}
     expires-in: 604800
   mail:
     from: ${MAIL_FROM:noreply@localhost}

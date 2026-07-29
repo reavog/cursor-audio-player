@@ -35,7 +35,7 @@ export class AuthService {
   async login(request: LoginRequest): Promise<void> {
     const response = await this.postJson<LoginResponse>("/api/auth/login", request);
     this.persistSession(response);
-    await this.loadMe();
+    await this.loadCurrentUserOrClearSession();
   }
 
   async register(request: RegisterRequest): Promise<MessageResponse> {
@@ -49,7 +49,7 @@ export class AuthService {
   async verifyOtp(request: OtpVerifyRequest): Promise<void> {
     const response = await this.postJson<LoginResponse>("/api/auth/otp/verify", request);
     this.persistSession(response);
-    await this.loadMe();
+    await this.loadCurrentUserOrClearSession();
   }
 
   async loadMe(): Promise<AuthUser> {
@@ -84,6 +84,15 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, response.accessToken);
     localStorage.setItem(EXPIRES_AT_KEY, String(expiresAt));
     this.tokenSignal.set(response.accessToken);
+  }
+
+  private async loadCurrentUserOrClearSession(): Promise<void> {
+    try {
+      await this.loadMe();
+    } catch (error) {
+      this.clearSession();
+      throw error;
+    }
   }
 
   private clearSession(): void {
