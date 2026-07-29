@@ -40,16 +40,18 @@ public class AuthService {
 
   @Transactional
   public void register(RegisterRequest request) {
+    String email = request.email().trim().toLowerCase();
+
     if (userRepository.existsByUsername(request.username())) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already taken");
     }
-    if (userRepository.existsByEmail(request.email())) {
+    if (userRepository.existsByEmail(email)) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
     }
 
     User user = new User();
     user.setUsername(request.username());
-    user.setEmail(request.email().trim().toLowerCase());
+    user.setEmail(email);
     user.setPasswordHash(passwordEncoder.encode(request.password()));
     userRepository.save(user);
   }

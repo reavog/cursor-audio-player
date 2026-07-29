@@ -10,6 +10,10 @@
 }
 
 .app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
   margin-bottom: 24px;
 }
 
@@ -30,9 +34,61 @@ h1 {
   letter-spacing: 0;
 }
 
+.brand-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.signed-in-as {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.54);
+  box-shadow: 0 8px 24px rgba(30, 41, 59, 0.07);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.logout-button:hover {
+  background: var(--glass-bg-strong);
+  box-shadow: var(--surface-shadow-hover);
+}
+
 @media (max-width: 720px) {
   .app-shell {
     width: min(100% - 24px, 1180px);
     padding: 24px 0;
+  }
+
+  .app-header {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logout-button {
+    transition: none;
   }
 }

@@ -1,8 +1,6 @@
 package com.audioplayer.project;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -21,7 +19,6 @@ public class HelloControllerTest {
   @Test
   public void getHello() throws Exception {
     mvc.perform(get("/").accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().string(equalTo("Greetings from Spring Boot!")));
+        .andExpect(status().isUnauthorized());
   }
 }

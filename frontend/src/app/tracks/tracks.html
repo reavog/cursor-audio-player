@@ -72,7 +72,7 @@
     <audio
       #audioPlayer
       preload="metadata"
-      [src]="streamUrl()"
+      [src]="streamObjectUrl()"
       (loadedmetadata)="onLoadedMetadata(audioPlayer)"
       (timeupdate)="onTimeUpdate(audioPlayer)"
       (ended)="onEnded()"

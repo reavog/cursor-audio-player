@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from "@angular/core";
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from "@angular/core";
 import { Song, SongService } from "../songservice";
 
 @Component({
@@ -6,10 +6,11 @@ import { Song, SongService } from "../songservice";
   templateUrl: "./tracks.html",
   styleUrls: ["./tracks.scss"],
 })
-export class Tracks implements OnInit {
+export class Tracks implements OnInit, OnDestroy {
   @ViewChild("audioPlayer") private audioPlayer?: ElementRef<HTMLAudioElement>;
 
   private readonly songService = inject(SongService);
+  private objectUrl: string | null = null;
 
   readonly songs = signal<Song[]>([]);
   readonly selectedSongId = signal<string | null>(null);
@@ -18,15 +19,11 @@ export class Tracks implements OnInit {
   readonly isPlaying = signal(false);
   readonly currentTime = signal(0);
   readonly loadedDuration = signal(0);
+  readonly streamObjectUrl = signal("");
 
   readonly selectedSong = computed(() => {
     const selectedId = this.selectedSongId();
     return this.songs().find((song) => song.id === selectedId) ?? null;
-  });
-
-  readonly streamUrl = computed(() => {
-    const song = this.selectedSong();
-    return song ? this.songService.streamUrl(song.id) : "";
   });
 
   readonly activeDuration = computed(() => {
@@ -39,6 +36,10 @@ export class Tracks implements OnInit {
     await this.loadSongs();
   }
 
+  ngOnDestroy(): void {
+    this.revokeObjectUrl();
+  }
+
   async loadSongs(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
@@ -48,7 +49,7 @@ export class Tracks implements OnInit {
       this.songs.set(songs);
 
       if (songs.length > 0 && this.selectedSongId() === null) {
-        this.selectedSongId.set(songs[0].id);
+        await this.selectSong(songs[0]);
       }
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : "Unable to load songs.");
@@ -57,20 +58,30 @@ export class Tracks implements OnInit {
     }
   }
 
-  selectSong(song: Song): void {
-    if (song.id === this.selectedSongId()) {
+  async selectSong(song: Song): Promise<void> {
+    if (song.id === this.selectedSongId() && this.streamObjectUrl()) {
       return;
     }
 
     this.selectedSongId.set(song.id);
     this.resetPlaybackState();
-    queueMicrotask(() => this.audioElement()?.load());
+
+    try {
+      const objectUrl = await this.songService.createAuthenticatedStreamUrl(song.id);
+      this.revokeObjectUrl();
+      this.objectUrl = objectUrl;
+      this.streamObjectUrl.set(objectUrl);
+      queueMicrotask(() => this.audioElement()?.load());
+    } catch (error) {
+      this.streamObjectUrl.set("");
+      this.error.set(error instanceof Error ? error.message : "Unable to prepare audio playback.");
+    }
   }
 
   async playSelectedSong(): Promise<void> {
     const audio = this.audioElement();
 
-    if (!audio || !this.selectedSong()) {
+    if (!audio || !this.selectedSong() || !this.streamObjectUrl()) {
       return;
     }
 
@@ -106,7 +117,7 @@ export class Tracks implements OnInit {
     const previousIndex = Math.max(currentIndex - 1, 0);
     const wasPlaying = this.isPlaying();
 
-    this.selectSong(songs[previousIndex]);
+    await this.selectSong(songs[previousIndex]);
 
     if (wasPlaying) {
       queueMicrotask(() => {
@@ -168,6 +179,13 @@ export class Tracks implements OnInit {
     this.isPlaying.set(false);
     this.currentTime.set(0);
     this.loadedDuration.set(0);
+  }
+
+  private revokeObjectUrl(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
   }
 
   private audioElement(): HTMLAudioElement | null {

@@ -2,9 +2,27 @@
   <header class="app-header" aria-label="Application header">
     <div>
       <p class="app-kicker">Spring Boot practice library</p>
-      <h1>{{ title }}</h1>
+      <h1>
+        @if (isAuthenticated()) {
+          <a class="brand-link" routerLink="/">{{ title }}</a>
+        } @else {
+          {{ title }}
+        }
+      </h1>
     </div>
+
+    @if (isAuthenticated()) {
+      <div class="header-actions">
+        <p class="signed-in-as">
+          Signed in as <strong>{{ username() }}</strong>
+        </p>
+        <button class="logout-button" type="button" (click)="logout()">
+          <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+          Sign out
+        </button>
+      </div>
+    }
   </header>
 
-  <app-tracks />
+  <router-outlet />
 </main>
