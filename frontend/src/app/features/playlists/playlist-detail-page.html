@@ -1,0 +1,65 @@
+<section class="playlist-detail" aria-labelledby="playlist-detail-title">
+  <a class="back-link" routerLink="/playlists">
+    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+    All playlists
+  </a>
+
+  @if (!playlist()) {
+    <app-empty-state
+      tone="error"
+      icon="error"
+      title="Playlist not found"
+      message="This playlist is unavailable or may have been removed."
+    />
+  } @else {
+    <header class="header">
+      <div
+        class="swatch"
+        [style.background]="playlist()!.artworkColor"
+        aria-hidden="true"
+      ></div>
+
+      <div class="header-copy">
+        <p class="eyebrow">Playlist</p>
+        <h1 id="playlist-detail-title">{{ playlist()!.name }}</h1>
+        @if (playlist()!.description) {
+          <p class="description">{{ playlist()!.description }}</p>
+        }
+        <p class="meta">{{ songs().length }} songs</p>
+
+        <div class="header-actions">
+          <button
+            class="play-all"
+            type="button"
+            [disabled]="songs().length === 0"
+            (click)="playAll()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+            Play all
+          </button>
+        </div>
+      </div>
+    </header>
+
+    @if (songs().length === 0) {
+      <app-empty-state
+        icon="library_music"
+        title="Empty playlist"
+        message="This playlist has no songs yet. Play from your library or add tracks later."
+      />
+    } @else {
+      <div class="song-list" role="list" aria-label="Playlist songs">
+        @for (song of songs(); track song.id; let index = $index) {
+          <app-song-row
+            [song]="song"
+            [index]="index"
+            [active]="currentSong()?.id === song.id"
+            [playing]="currentSong()?.id === song.id && isPlaying()"
+            (playRequested)="playSong($event)"
+            (favoriteToggled)="toggleFavorite($event)"
+          />
+        }
+      </div>
+    }
+  }
+</section>

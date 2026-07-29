@@ -1,0 +1,19 @@
+<a
+  class="playlist-card"
+  [routerLink]="['/playlists', playlist().id]"
+  [attr.aria-label]="playlist().name + ', ' + playlist().songCount + ' songs'"
+>
+  <span
+    class="playlist-card__swatch"
+    [style.background]="playlist().artworkColor"
+    aria-hidden="true"
+  ></span>
+
+  <span class="playlist-card__body">
+    <span class="playlist-card__name">{{ playlist().name }}</span>
+    <span class="playlist-card__count">{{ playlist().songCount }} songs</span>
+    @if (playlist().description) {
+      <span class="playlist-card__description">{{ playlist().description }}</span>
+    }
+  </span>
+</a>

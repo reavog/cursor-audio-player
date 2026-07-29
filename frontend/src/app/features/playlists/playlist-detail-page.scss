@@ -1,0 +1,143 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.playlist-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-lg);
+  overflow: auto;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.back-link:hover {
+  color: var(--accent-hover);
+}
+
+.back-link .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.header {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: flex-end;
+}
+
+.swatch {
+  flex: 0 0 auto;
+  width: 160px;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  box-shadow: var(--shadow-medium);
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.7rem;
+  font-weight: 600;
+}
+
+.description {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.meta {
+  margin: 8px 0 var(--space-md);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.play-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  color: white;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.92), rgba(167, 139, 250, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+  cursor: pointer;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.play-all:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-hover), rgba(139, 92, 246, 0.92));
+}
+
+.play-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.play-all:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16);
+}
+
+.song-list {
+  display: grid;
+  gap: 2px;
+}
+
+@media (max-width: 720px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .swatch {
+    width: 112px;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-link,
+  .play-all {
+    transition: none;
+  }
+}

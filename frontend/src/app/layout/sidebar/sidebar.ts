@@ -1,7 +1,9 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { Playlist } from "../../core/models/playlist.model";
+import { PlaylistService } from "../../core/services/playlist.service";
 import { IconButton } from "../../shared/components/icon-button/icon-button";
+import { promptAndCreatePlaylist } from "../../features/playlists/create-playlist";
 
 interface NavItem {
   label: string;
@@ -17,6 +19,8 @@ interface NavItem {
   styleUrls: ["./sidebar.scss"],
 })
 export class Sidebar {
+  private readonly playlistService = inject(PlaylistService);
+
   readonly collapsed = input(false);
   readonly playlists = input<Playlist[]>([]);
   readonly closeRequested = output<void>();
@@ -33,5 +37,13 @@ export class Sidebar {
 
   onNavClick(): void {
     this.closeRequested.emit();
+  }
+
+  addPlaylist(event: MouseEvent): void {
+    event.stopPropagation();
+    const playlist = promptAndCreatePlaylist(this.playlistService);
+    if (playlist) {
+      this.closeRequested.emit();
+    }
   }
 }
