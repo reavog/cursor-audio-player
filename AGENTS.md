@@ -66,6 +66,3 @@ Angular implementation requirements:
 - For every frontend UI request, determine the functional requirements, apply Minimal Glass, provide complete TypeScript, HTML, and SCSS, include needed interfaces or mock data, and briefly explain placement and usage.
 
 When no existing theme tokens cover the need, define reusable CSS custom properties for glass backgrounds, text colors, accents, shadows, radii, and spacing before using one-off values.
-
-## Agent-Specific Instructions
-Agents may read any file in this repository to understand context, but must only edit files under `frontend/`. Do not modify backend code, root configuration, documentation, or other repository files unless the user explicitly changes this instruction.

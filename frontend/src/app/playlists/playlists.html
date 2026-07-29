@@ -1,0 +1,99 @@
+<section class="playlists-shell" aria-labelledby="playlists-title">
+  <div class="playlists-panel">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Collections</p>
+        <h2 id="playlists-title">Playlists</h2>
+      </div>
+
+      <button class="icon-button" type="button" aria-label="Refresh playlists" (click)="loadPlaylists()">
+        <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+      </button>
+    </div>
+
+    <form class="create-row" (submit)="$event.preventDefault(); createPlaylist()">
+      <label class="sr-only" for="new-playlist-name">New playlist name</label>
+      <input
+        id="new-playlist-name"
+        type="text"
+        maxlength="120"
+        placeholder="Name a new playlist"
+        [ngModel]="newPlaylistName()"
+        (ngModelChange)="newPlaylistName.set($event)"
+        [disabled]="creating()"
+      />
+      <button class="primary-button" type="submit" [disabled]="creating() || !newPlaylistName().trim()">
+        <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+        Create
+      </button>
+    </form>
+
+    @if (loading()) {
+      <div class="status-state" aria-live="polite">
+        <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
+        Loading playlists...
+      </div>
+    } @else if (error()) {
+      <div class="status-state error-state" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        {{ error() }}
+      </div>
+    } @else if (playlists().length === 0) {
+      <div class="status-state">
+        <span class="material-symbols-outlined" aria-hidden="true">queue_music</span>
+        No playlists yet. Create one to get started.
+      </div>
+    } @else {
+      <div class="playlist-table" role="list" aria-label="Playlists">
+        <div class="playlist-heading" aria-hidden="true">
+          <span>Name</span>
+          <span>Creator</span>
+          <span>Created</span>
+          <span>Songs</span>
+          <span>Length</span>
+          <span></span>
+        </div>
+
+        @for (playlist of playlists(); track playlist.id) {
+          <div class="playlist-row" role="listitem">
+            @if (renamingId() === playlist.id) {
+              <form class="rename-form" (submit)="saveRename(playlist.id, $event)">
+                <label class="sr-only" [attr.for]="'rename-' + playlist.id">Rename playlist</label>
+                <input
+                  [id]="'rename-' + playlist.id"
+                  type="text"
+                  maxlength="120"
+                  [ngModel]="renameValue()"
+                  (ngModelChange)="renameValue.set($event)"
+                  [disabled]="savingRename()"
+                />
+                <button class="primary-button compact" type="submit" [disabled]="savingRename() || !renameValue().trim()">
+                  Save
+                </button>
+                <button class="secondary-button compact" type="button" (click)="cancelRename($event)">
+                  Cancel
+                </button>
+              </form>
+            } @else {
+              <a class="playlist-link" [routerLink]="['/playlists', playlist.id]">
+                <span class="playlist-name">{{ playlist.name }}</span>
+                <span class="muted">{{ playlist.creatorUsername }}</span>
+                <span class="muted">{{ formatCreatedAt(playlist.createdAt) }}</span>
+                <span class="muted">{{ playlist.songCount }}</span>
+                <span class="playlist-duration">{{ formatDuration(playlist.totalDurationSeconds) }}</span>
+              </a>
+              <button
+                class="icon-button compact"
+                type="button"
+                aria-label="Rename playlist"
+                (click)="startRename(playlist, $event)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

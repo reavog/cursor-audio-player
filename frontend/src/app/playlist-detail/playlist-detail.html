@@ -1,0 +1,134 @@
+<section class="detail-shell" aria-labelledby="playlist-detail-title">
+  <div class="detail-panel">
+    <div class="panel-header">
+      <div>
+        <a class="back-link" routerLink="/playlists">
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          All playlists
+        </a>
+        <p class="eyebrow">Playlist</p>
+        @if (renaming()) {
+          <form class="rename-form" (submit)="$event.preventDefault(); saveRename()">
+            <label class="sr-only" for="playlist-rename">Playlist name</label>
+            <input
+              id="playlist-rename"
+              type="text"
+              maxlength="120"
+              [ngModel]="renameValue()"
+              (ngModelChange)="renameValue.set($event)"
+              [disabled]="savingRename()"
+            />
+            <button class="primary-button compact" type="submit" [disabled]="savingRename() || !renameValue().trim()">
+              Save
+            </button>
+            <button class="secondary-button compact" type="button" (click)="cancelRename()">Cancel</button>
+          </form>
+        } @else {
+          <div class="title-row">
+            <h2 id="playlist-detail-title">{{ playlist()?.name || "Playlist" }}</h2>
+            <button class="icon-button compact" type="button" aria-label="Rename playlist" (click)="startRename()">
+              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="status-state" aria-live="polite">
+        <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
+        Loading playlist...
+      </div>
+    } @else if (error() && !playlist()) {
+      <div class="status-state error-state" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        {{ error() }}
+      </div>
+    } @else if (playlist(); as current) {
+      @if (error()) {
+        <div class="inline-error" role="alert">{{ error() }}</div>
+      }
+
+      <dl class="meta-grid">
+        <div>
+          <dt>Creator</dt>
+          <dd>{{ current.creatorUsername }}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{{ formatCreatedAt(current.createdAt) }}</dd>
+        </div>
+        <div>
+          <dt>Songs</dt>
+          <dd>{{ current.songCount }}</dd>
+        </div>
+        <div>
+          <dt>Total length</dt>
+          <dd>{{ formatDuration(current.totalDurationSeconds) }}</dd>
+        </div>
+      </dl>
+
+      <div class="detail-columns">
+        <section aria-labelledby="playlist-songs-title">
+          <h3 id="playlist-songs-title">Songs in playlist</h3>
+
+          @if (current.songs.length === 0) {
+            <div class="status-state compact">
+              <span class="material-symbols-outlined" aria-hidden="true">music_off</span>
+              This playlist has no songs yet.
+            </div>
+          } @else {
+            <div class="song-table" role="list">
+              <div class="song-heading" aria-hidden="true">
+                <span>#</span>
+                <span>Title</span>
+                <span>Artist</span>
+                <span>Time</span>
+              </div>
+
+              @for (song of current.songs; track song.id; let index = $index) {
+                <div class="song-row" role="listitem">
+                  <span class="song-index">{{ index + 1 }}</span>
+                  <span class="song-title">{{ song.title || "Untitled song" }}</span>
+                  <span class="muted">{{ song.artist || "Unknown artist" }}</span>
+                  <span class="song-duration">{{ formatDuration(song.duration) }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section aria-labelledby="add-songs-title">
+          <h3 id="add-songs-title">Add songs</h3>
+
+          @if (availableSongs().length === 0) {
+            <div class="status-state compact">
+              <span class="material-symbols-outlined" aria-hidden="true">library_add_check</span>
+              Every song in your library is already in this playlist.
+            </div>
+          } @else {
+            <div class="song-table" role="list">
+              @for (song of availableSongs(); track song.id) {
+                <div class="song-row add-row" role="listitem">
+                  <div class="add-copy">
+                    <span class="song-title">{{ song.title || "Untitled song" }}</span>
+                    <span class="muted">{{ song.artist || "Unknown artist" }} · {{ formatDuration(song.duration) }}</span>
+                  </div>
+                  <button
+                    class="primary-button compact"
+                    type="button"
+                    [disabled]="addingSongId() === song.id"
+                    (click)="addSong(song)"
+                  >
+                    <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                    Add
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    }
+  </div>
+</section>

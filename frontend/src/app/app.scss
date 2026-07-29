@@ -47,6 +47,36 @@ h1 {
   gap: var(--space-sm);
 }
 
+.app-nav {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 16px;
+}
+
+.app-nav a {
+  min-height: 36px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.app-nav a:hover,
+.app-nav a.is-active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .signed-in-as {
   margin: 0;
   color: var(--text-secondary);

@@ -4,6 +4,8 @@ import { ForgotPassword } from "./features/auth/forgot-password/forgot-password"
 import { Login } from "./features/auth/login/login";
 import { OtpVerify } from "./features/auth/otp-verify/otp-verify";
 import { Register } from "./features/auth/register/register";
+import { PlaylistDetail } from "./playlist-detail/playlist-detail";
+import { Playlists } from "./playlists/playlists";
 import { Tracks } from "./tracks/tracks";
 
 export const routes: Routes = [
@@ -30,6 +32,16 @@ export const routes: Routes = [
   {
     path: "",
     component: Tracks,
+    canActivate: [authGuard],
+  },
+  {
+    path: "playlists",
+    component: Playlists,
+    canActivate: [authGuard],
+  },
+  {
+    path: "playlists/:id",
+    component: PlaylistDetail,
     canActivate: [authGuard],
   },
   {
