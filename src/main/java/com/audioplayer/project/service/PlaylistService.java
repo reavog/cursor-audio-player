@@ -109,6 +109,25 @@ public class PlaylistService {
     return toDto(playlist, entries, true);
   }
 
+  @Transactional
+  public PlaylistDTO removeSong(String username, UUID playlistId, UUID songId) {
+    Playlist playlist = requireOwnedPlaylist(username, playlistId);
+    PlaylistSong entry =
+        playlistSongRepository
+            .findByPlaylistIdAndSongId(playlist.getId(), songId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Song is not in this playlist"));
+
+    playlistSongRepository.delete(entry);
+    playlistSongRepository.flush();
+
+    List<PlaylistSong> remainingEntries =
+        playlistSongRepository.findByPlaylistIdOrderByPositionAsc(playlist.getId());
+    return toDto(playlist, remainingEntries, true);
+  }
+
   @Transactional(readOnly = true)
   public List<SongsDTO> listSongs(String username, UUID playlistId) {
     Playlist playlist = requireOwnedPlaylist(username, playlistId);

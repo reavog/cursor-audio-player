@@ -1,8 +1,21 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { RouterLink } from "@angular/router";
+import { Playlist, PlaylistApiError, PlaylistService } from "../playlistservice";
 import { Song, SongService } from "../songservice";
 
 @Component({
   selector: "app-tracks",
+  imports: [RouterLink],
   templateUrl: "./tracks.html",
   styleUrls: ["./tracks.scss"],
 })
@@ -10,6 +23,7 @@ export class Tracks implements OnInit, OnDestroy {
   @ViewChild("audioPlayer") private audioPlayer?: ElementRef<HTMLAudioElement>;
 
   private readonly songService = inject(SongService);
+  private readonly playlistService = inject(PlaylistService);
   private objectUrl: string | null = null;
 
   readonly songs = signal<Song[]>([]);
@@ -20,6 +34,12 @@ export class Tracks implements OnInit, OnDestroy {
   readonly currentTime = signal(0);
   readonly loadedDuration = signal(0);
   readonly streamObjectUrl = signal("");
+  readonly actionMenuSongId = signal<string | null>(null);
+  readonly playlists = signal<Playlist[]>([]);
+  readonly playlistsLoading = signal(false);
+  readonly addingToPlaylistId = signal<string | null>(null);
+  readonly actionMessage = signal<string | null>(null);
+  readonly actionError = signal<string | null>(null);
 
   readonly selectedSong = computed(() => {
     const selectedId = this.selectedSongId();
@@ -34,6 +54,16 @@ export class Tracks implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.loadSongs();
+  }
+
+  @HostListener("document:keydown.escape")
+  closeActionMenu(): void {
+    this.actionMenuSongId.set(null);
+  }
+
+  @HostListener("document:click")
+  closeActionMenuFromOutside(): void {
+    this.closeActionMenu();
   }
 
   ngOnDestroy(): void {
@@ -75,6 +105,69 @@ export class Tracks implements OnInit, OnDestroy {
     } catch (error) {
       this.streamObjectUrl.set("");
       this.error.set(error instanceof Error ? error.message : "Unable to prepare audio playback.");
+    }
+  }
+
+  async toggleActionMenu(song: Song, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.actionMessage.set(null);
+    this.actionError.set(null);
+
+    if (this.actionMenuSongId() === song.id) {
+      this.closeActionMenu();
+      return;
+    }
+
+    this.actionMenuSongId.set(song.id);
+    if (this.playlists().length === 0) {
+      await this.loadPlaylistsForMenu();
+    }
+  }
+
+  keepActionMenuOpen(event: Event): void {
+    event.stopPropagation();
+  }
+
+  async addSongToPlaylist(song: Song, playlist: Playlist): Promise<void> {
+    if (this.addingToPlaylistId()) {
+      return;
+    }
+
+    this.addingToPlaylistId.set(playlist.id);
+    this.actionMessage.set(null);
+    this.actionError.set(null);
+
+    try {
+      const updated = await this.playlistService.addSong(playlist.id, song.id);
+      this.playlists.update((items) =>
+        items.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
+      );
+      this.actionMessage.set(`Added “${song.title || "Untitled song"}” to ${playlist.name}.`);
+      this.closeActionMenu();
+    } catch (error) {
+      this.actionError.set(
+        error instanceof PlaylistApiError && error.status === 409
+          ? "Song is already in this playlist."
+          : error instanceof Error
+            ? error.message
+            : "Unable to add this song to the playlist.",
+      );
+    } finally {
+      this.addingToPlaylistId.set(null);
+    }
+  }
+
+  private async loadPlaylistsForMenu(): Promise<void> {
+    this.playlistsLoading.set(true);
+
+    try {
+      this.playlists.set(await this.playlistService.list());
+    } catch (error) {
+      this.actionError.set(
+        error instanceof Error ? error.message : "Unable to load your playlists.",
+      );
+    } finally {
+      this.playlistsLoading.set(false);
     }
   }
 

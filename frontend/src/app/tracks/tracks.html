@@ -11,6 +11,20 @@
       </button>
     </div>
 
+    @if (actionMessage()) {
+      <div class="action-feedback success-feedback" role="status" aria-live="polite">
+        <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+        {{ actionMessage() }}
+      </div>
+    }
+
+    @if (actionError()) {
+      <div class="action-feedback error-feedback" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        {{ actionError() }}
+      </div>
+    }
+
     @if (loading()) {
       <div class="status-state" aria-live="polite">
         <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
@@ -34,25 +48,85 @@
           <span>Artist</span>
           <span>Album</span>
           <span>Time</span>
+          <span>Actions</span>
         </div>
 
         @for (song of songs(); track song.id; let index = $index) {
-          <button
+          <div
             class="track-row"
-            type="button"
             role="listitem"
             [class.is-active]="song.id === selectedSongId()"
-            [attr.aria-current]="song.id === selectedSongId() ? 'true' : null"
-            (click)="selectSong(song)"
           >
-            <span class="track-index">{{ index + 1 }}</span>
-            <span class="track-title">
-              {{ song.title || "Untitled song" }}
-            </span>
-            <span class="muted">{{ song.artist || "Unknown artist" }}</span>
-            <span class="muted">{{ song.album || "Unknown album" }}</span>
-            <span class="track-duration">{{ formatDuration(song.duration) }}</span>
-          </button>
+            <button
+              class="track-select"
+              type="button"
+              [attr.aria-current]="song.id === selectedSongId() ? 'true' : null"
+              (click)="selectSong(song)"
+            >
+              <span class="track-index">{{ index + 1 }}</span>
+              <span class="track-title">
+                {{ song.title || "Untitled song" }}
+              </span>
+              <span class="muted">{{ song.artist || "Unknown artist" }}</span>
+              <span class="muted">{{ song.album || "Unknown album" }}</span>
+              <span class="track-duration">{{ formatDuration(song.duration) }}</span>
+            </button>
+
+            <div class="track-actions" (click)="keepActionMenuOpen($event)">
+              <button
+                class="more-button"
+                type="button"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="actionMenuSongId() === song.id"
+                [attr.aria-controls]="'song-actions-' + song.id"
+                [attr.aria-label]="'Actions for ' + (song.title || 'Untitled song')"
+                (click)="toggleActionMenu(song, $event)"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+              </button>
+
+              @if (actionMenuSongId() === song.id) {
+                <div
+                  class="song-action-menu"
+                  role="menu"
+                  [id]="'song-actions-' + song.id"
+                  aria-label="Add to Playlist"
+                >
+                  <p class="menu-title">
+                    <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+                    Add to Playlist
+                  </p>
+
+                  @if (playlistsLoading()) {
+                    <p class="menu-state" aria-live="polite">Loading playlists...</p>
+                  } @else if (playlists().length === 0) {
+                    <p class="menu-state">You have no playlists yet.</p>
+                    <a class="menu-link" routerLink="/playlists" (click)="closeActionMenu()">
+                      Create a playlist
+                    </a>
+                  } @else {
+                    <div class="playlist-menu-list">
+                      @for (playlist of playlists(); track playlist.id) {
+                        <button
+                          class="playlist-menu-item"
+                          type="button"
+                          role="menuitem"
+                          [disabled]="addingToPlaylistId() !== null"
+                          (click)="addSongToPlaylist(song, playlist)"
+                        >
+                          <span class="material-symbols-outlined" aria-hidden="true">queue_music</span>
+                          <span>
+                            <strong>{{ playlist.name }}</strong>
+                            <small>{{ playlist.songCount }} songs</small>
+                          </span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
         }
       </div>
     }

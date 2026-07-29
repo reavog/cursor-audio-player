@@ -12,6 +12,16 @@ export interface Playlist {
   songs: Song[];
 }
 
+export class PlaylistApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "PlaylistApiError";
+  }
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -48,6 +58,12 @@ export class PlaylistService {
     });
   }
 
+  async removeSong(playlistId: string, songId: string): Promise<Playlist> {
+    return this.requestJson<Playlist>(`${this.url}/${playlistId}/songs/${songId}`, {
+      method: "DELETE",
+    });
+  }
+
   private async requestJson<T>(url: string, init: RequestInit = {}): Promise<T> {
     const headers: Record<string, string> = {
       ...this.authService.authorizationHeader(),
@@ -68,7 +84,10 @@ export class PlaylistService {
     }
 
     if (!response.ok) {
-      throw new Error(await this.readError(response, "Playlist request failed."));
+      throw new PlaylistApiError(
+        await this.readError(response, "Playlist request failed."),
+        response.status,
+      );
     }
 
     return (await response.json()) as T;

@@ -19,10 +19,12 @@ export class PlaylistDetail implements OnInit {
   readonly librarySongs = signal<Song[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
   readonly renaming = signal(false);
   readonly renameValue = signal("");
   readonly savingRename = signal(false);
   readonly addingSongId = signal<string | null>(null);
+  readonly removingSongId = signal<string | null>(null);
 
   readonly playlistSongIds = computed(() => {
     const songs = this.playlist()?.songs ?? [];
@@ -107,14 +109,39 @@ export class PlaylistDetail implements OnInit {
 
     this.addingSongId.set(song.id);
     this.error.set(null);
+    this.successMessage.set(null);
 
     try {
       const updated = await this.playlistService.addSong(current.id, song.id);
       this.playlist.set(updated);
+      this.successMessage.set(`Added “${song.title || "Untitled song"}” to this playlist.`);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : "Unable to add song.");
     } finally {
       this.addingSongId.set(null);
+    }
+  }
+
+  async removeSong(song: Song): Promise<void> {
+    const current = this.playlist();
+    if (!current || this.removingSongId()) {
+      return;
+    }
+
+    this.removingSongId.set(song.id);
+    this.error.set(null);
+    this.successMessage.set(null);
+
+    try {
+      const updated = await this.playlistService.removeSong(current.id, song.id);
+      this.playlist.set(updated);
+      this.successMessage.set(`Removed “${song.title || "Untitled song"}” from this playlist.`);
+    } catch (error) {
+      this.error.set(
+        error instanceof Error ? error.message : "Unable to remove this song from the playlist.",
+      );
+    } finally {
+      this.removingSongId.set(null);
     }
   }
 

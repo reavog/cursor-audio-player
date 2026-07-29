@@ -14,8 +14,14 @@
     @if (isAuthenticated()) {
       <div class="header-actions">
         <nav class="app-nav" aria-label="Primary">
-          <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Library</a>
-          <a routerLink="/playlists" routerLinkActive="is-active">Playlists</a>
+          <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+            <span class="material-symbols-outlined" aria-hidden="true">library_music</span>
+            Library
+          </a>
+          <a routerLink="/playlists" routerLinkActive="is-active">
+            <span class="material-symbols-outlined" aria-hidden="true">queue_music</span>
+            Playlists
+          </a>
         </nav>
         <p class="signed-in-as">
           Signed in as <strong>{{ username() }}</strong>

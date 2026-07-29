@@ -4,6 +4,7 @@
       <div>
         <p class="eyebrow">Collections</p>
         <h2 id="playlists-title">Playlists</h2>
+        <p class="panel-copy">Create and manage all of your playlists in one place.</p>
       </div>
 
       <button class="icon-button" type="button" aria-label="Refresh playlists" (click)="loadPlaylists()">
@@ -28,15 +29,17 @@
       </button>
     </form>
 
+    @if (error()) {
+      <div class="inline-error" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        {{ error() }}
+      </div>
+    }
+
     @if (loading()) {
       <div class="status-state" aria-live="polite">
         <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
         Loading playlists...
-      </div>
-    } @else if (error()) {
-      <div class="status-state error-state" role="alert">
-        <span class="material-symbols-outlined" aria-hidden="true">error</span>
-        {{ error() }}
       </div>
     } @else if (playlists().length === 0) {
       <div class="status-state">

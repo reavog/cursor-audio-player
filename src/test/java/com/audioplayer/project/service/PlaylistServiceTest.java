@@ -185,6 +185,83 @@ class PlaylistServiceTest {
     verify(playlistSongRepository, never()).save(any());
   }
 
+  @Test
+  void removeSongDeletesOnlyJoinEntryAndRefreshesTotals() throws Exception {
+    Playlist playlist = new Playlist(user, "Road Trip");
+    UUID playlistId = UUID.randomUUID();
+    setField(playlist, "id", playlistId);
+    setField(playlist, "createdAt", LocalDateTime.of(2026, 7, 20, 10, 0));
+
+    UUID removedSongId = UUID.randomUUID();
+    Songs removedSong =
+        new Songs(removedSongId, "First", "Artist", "Album", 180, "/tmp/first.mp3");
+    PlaylistSong removedEntry = new PlaylistSong(playlist, removedSong, 0);
+
+    UUID remainingSongId = UUID.randomUUID();
+    Songs remainingSong =
+        new Songs(remainingSongId, "Second", "Artist", "Album", 240, "/tmp/second.mp3");
+    PlaylistSong remainingEntry = new PlaylistSong(playlist, remainingSong, 1);
+    SongsDTO remainingDto =
+        new SongsDTO(remainingSongId, "Second", "Artist", "Album", 240);
+
+    when(userRepository.findByUsername("miguel")).thenReturn(Optional.of(user));
+    when(playlistRepository.findByIdAndUserId(playlistId, userId)).thenReturn(Optional.of(playlist));
+    when(playlistSongRepository.findByPlaylistIdAndSongId(playlistId, removedSongId))
+        .thenReturn(Optional.of(removedEntry));
+    when(playlistSongRepository.findByPlaylistIdOrderByPositionAsc(playlistId))
+        .thenReturn(List.of(remainingEntry));
+    when(songMapper.toDto(remainingSong)).thenReturn(remainingDto);
+
+    PlaylistDTO dto = playlistService.removeSong("miguel", playlistId, removedSongId);
+
+    verify(playlistSongRepository).delete(removedEntry);
+    verify(playlistSongRepository).flush();
+    verify(songsRepository, never()).delete(any());
+    assertEquals(1, dto.songCount());
+    assertEquals(240, dto.totalDurationSeconds());
+    assertEquals(List.of(remainingDto), dto.songs());
+  }
+
+  @Test
+  void removeSongRejectsSongNotInPlaylist() throws Exception {
+    Playlist playlist = new Playlist(user, "Focus");
+    UUID playlistId = UUID.randomUUID();
+    UUID songId = UUID.randomUUID();
+    setField(playlist, "id", playlistId);
+
+    when(userRepository.findByUsername("miguel")).thenReturn(Optional.of(user));
+    when(playlistRepository.findByIdAndUserId(playlistId, userId)).thenReturn(Optional.of(playlist));
+    when(playlistSongRepository.findByPlaylistIdAndSongId(playlistId, songId))
+        .thenReturn(Optional.empty());
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> playlistService.removeSong("miguel", playlistId, songId));
+
+    assertEquals(404, exception.getStatusCode().value());
+    assertEquals("Song is not in this playlist", exception.getReason());
+    verify(playlistSongRepository, never()).delete(any());
+  }
+
+  @Test
+  void removeSongRejectsPlaylistOwnedByAnotherUser() {
+    UUID playlistId = UUID.randomUUID();
+    UUID songId = UUID.randomUUID();
+
+    when(userRepository.findByUsername("miguel")).thenReturn(Optional.of(user));
+    when(playlistRepository.findByIdAndUserId(playlistId, userId)).thenReturn(Optional.empty());
+
+    ResponseStatusException exception =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> playlistService.removeSong("miguel", playlistId, songId));
+
+    assertEquals(404, exception.getStatusCode().value());
+    verify(playlistSongRepository, never()).findByPlaylistIdAndSongId(any(), any());
+    verify(playlistSongRepository, never()).delete(any());
+  }
+
   private static void setField(Object target, String name, Object value) throws Exception {
     Field field = target.getClass().getDeclaredField(name);
     field.setAccessible(true);
