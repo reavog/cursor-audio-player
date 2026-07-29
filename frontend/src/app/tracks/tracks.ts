@@ -9,21 +9,39 @@ import { Song, SongService } from "../songservice";
 export class Tracks implements OnInit, OnDestroy {
   @ViewChild("audioPlayer") private audioPlayer?: ElementRef<HTMLAudioElement>;
 
+  private static readonly SEARCH_DELAY_MS = 300;
+  private static readonly PAGE_SIZE = 25;
+
   private readonly songService = inject(SongService);
   private objectUrl: string | null = null;
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchController: AbortController | null = null;
+  private searchRequestId = 0;
+  private selectionRequestId = 0;
+  private hasLoaded = false;
 
   readonly songs = signal<Song[]>([]);
-  readonly selectedSongId = signal<string | null>(null);
+  readonly selectedSong = signal<Song | null>(null);
+  readonly searchQuery = signal("");
+  readonly activeQuery = signal("");
+  readonly currentPage = signal(0);
+  readonly totalElements = signal(0);
+  readonly totalPages = signal(0);
+  readonly isFirstPage = signal(true);
+  readonly isLastPage = signal(true);
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
+  readonly searching = signal(false);
+  readonly catalogError = signal<string | null>(null);
+  readonly playbackError = signal<string | null>(null);
   readonly isPlaying = signal(false);
   readonly currentTime = signal(0);
   readonly loadedDuration = signal(0);
   readonly streamObjectUrl = signal("");
 
-  readonly selectedSong = computed(() => {
+  readonly selectedSongId = computed(() => this.selectedSong()?.id ?? null);
+  readonly selectedSongInCurrentPage = computed(() => {
     const selectedId = this.selectedSongId();
-    return this.songs().find((song) => song.id === selectedId) ?? null;
+    return selectedId !== null && this.songs().some((song) => song.id === selectedId);
   });
 
   readonly activeDuration = computed(() => {
@@ -37,25 +55,93 @@ export class Tracks implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+    this.searchController?.abort();
+    this.selectionRequestId += 1;
     this.revokeObjectUrl();
   }
 
-  async loadSongs(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(null);
+  onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input.value);
+
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+
+    this.searchTimer = setTimeout(() => {
+      this.searchTimer = null;
+      void this.loadSongs(0);
+    }, Tracks.SEARCH_DELAY_MS);
+  }
+
+  clearSearch(): void {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
+
+    this.searchQuery.set("");
+    void this.loadSongs(0);
+  }
+
+  async loadSongs(page = this.currentPage()): Promise<void> {
+    const requestId = ++this.searchRequestId;
+    const query = this.searchQuery().trim();
+    this.searchController?.abort();
+    this.searchController = new AbortController();
+    this.activeQuery.set(query);
+    this.catalogError.set(null);
+    this.loading.set(!this.hasLoaded);
+    this.searching.set(this.hasLoaded);
 
     try {
-      const songs = await this.songService.getAllSongs();
-      this.songs.set(songs);
+      const result = await this.songService.getSongs(
+        query,
+        page,
+        Tracks.PAGE_SIZE,
+        this.searchController.signal,
+      );
 
-      if (songs.length > 0 && this.selectedSongId() === null) {
-        await this.selectSong(songs[0]);
+      if (requestId !== this.searchRequestId) {
+        return;
+      }
+
+      this.songs.set(result.content);
+      this.currentPage.set(result.page);
+      this.totalElements.set(result.totalElements);
+      this.totalPages.set(result.totalPages);
+      this.isFirstPage.set(result.first);
+      this.isLastPage.set(result.last);
+
+      if (result.content.length > 0 && this.selectedSong() === null) {
+        await this.selectSong(result.content[0]);
       }
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : "Unable to load songs.");
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      if (requestId === this.searchRequestId) {
+        this.catalogError.set(error instanceof Error ? error.message : "Unable to load songs.");
+      }
     } finally {
-      this.loading.set(false);
+      if (requestId === this.searchRequestId) {
+        this.hasLoaded = true;
+        this.loading.set(false);
+        this.searching.set(false);
+      }
     }
+  }
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages() || page === this.currentPage()) {
+      return;
+    }
+
+    void this.loadSongs(page);
   }
 
   async selectSong(song: Song): Promise<void> {
@@ -63,18 +149,30 @@ export class Tracks implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedSongId.set(song.id);
+    const requestId = ++this.selectionRequestId;
+    this.selectedSong.set(song);
+    this.playbackError.set(null);
     this.resetPlaybackState();
 
     try {
       const objectUrl = await this.songService.createAuthenticatedStreamUrl(song.id);
+
+      if (requestId !== this.selectionRequestId) {
+        URL.revokeObjectURL(objectUrl);
+        return;
+      }
+
       this.revokeObjectUrl();
       this.objectUrl = objectUrl;
       this.streamObjectUrl.set(objectUrl);
       queueMicrotask(() => this.audioElement()?.load());
     } catch (error) {
-      this.streamObjectUrl.set("");
-      this.error.set(error instanceof Error ? error.message : "Unable to prepare audio playback.");
+      if (requestId === this.selectionRequestId) {
+        this.streamObjectUrl.set("");
+        this.playbackError.set(
+          error instanceof Error ? error.message : "Unable to prepare audio playback.",
+        );
+      }
     }
   }
 
@@ -89,9 +187,9 @@ export class Tracks implements OnInit, OnDestroy {
       try {
         await audio.play();
         this.isPlaying.set(true);
-        this.error.set(null);
+        this.playbackError.set(null);
       } catch {
-        this.error.set("Playback could not start. Check that the audio file is available.");
+        this.playbackError.set("Playback could not start. Check that the audio file is available.");
       }
     } else {
       audio.pause();
@@ -104,7 +202,7 @@ export class Tracks implements OnInit, OnDestroy {
     const currentSong = this.selectedSong();
     const audio = this.audioElement();
 
-    if (!currentSong || songs.length === 0) {
+    if (!currentSong || songs.length === 0 || !this.selectedSongInCurrentPage()) {
       return;
     }
 

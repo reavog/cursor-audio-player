@@ -6,25 +6,69 @@
         <h2 id="tracks-title">Song list</h2>
       </div>
 
-      <button class="icon-button" type="button" aria-label="Refresh songs" (click)="loadSongs()">
+      <button class="icon-button" type="button" aria-label="Refresh songs" [disabled]="searching()" (click)="loadSongs()">
         <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
       </button>
     </div>
+
+    <div class="search-area" role="search">
+      <div class="search-field">
+        <span class="material-symbols-outlined search-icon" aria-hidden="true">search</span>
+        <label class="visually-hidden" for="song-search">Search songs</label>
+        <input
+          id="song-search"
+          type="search"
+          maxlength="100"
+          autocomplete="off"
+          placeholder="Search title, artist, or album"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+        />
+        @if (searchQuery()) {
+          <button class="clear-button" type="button" aria-label="Clear song search" (click)="clearSearch()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        }
+      </div>
+
+      <div class="search-summary" aria-live="polite">
+        <span>
+          @if (activeQuery()) {
+            {{ totalElements() }} {{ totalElements() === 1 ? "match" : "matches" }}
+          } @else if (!loading()) {
+            {{ totalElements() }} {{ totalElements() === 1 ? "song" : "songs" }}
+          }
+        </span>
+        @if (searching()) {
+          <span class="search-progress">
+            <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
+            Searching...
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (catalogError() && !loading() && songs().length > 0) {
+      <div class="inline-error" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        {{ catalogError() }}
+      </div>
+    }
 
     @if (loading()) {
       <div class="status-state" aria-live="polite">
         <span class="material-symbols-outlined" aria-hidden="true">hourglass_empty</span>
         Loading songs...
       </div>
-    } @else if (error()) {
+    } @else if (catalogError()) {
       <div class="status-state error-state" role="alert">
         <span class="material-symbols-outlined" aria-hidden="true">error</span>
-        {{ error() }}
+        {{ catalogError() }}
       </div>
     } @else if (songs().length === 0) {
       <div class="status-state">
-        <span class="material-symbols-outlined" aria-hidden="true">library_music</span>
-        No songs were returned by the API.
+        <span class="material-symbols-outlined" aria-hidden="true">{{ activeQuery() ? "search_off" : "library_music" }}</span>
+        {{ activeQuery() ? 'No songs match "' + activeQuery() + '".' : "There are no songs in the library yet." }}
       </div>
     } @else {
       <div class="track-table" role="list" aria-label="Songs">
@@ -55,6 +99,30 @@
           </button>
         }
       </div>
+
+      @if (totalPages() > 1) {
+        <nav class="pagination" aria-label="Song search result pages">
+          <button
+            class="page-button"
+            type="button"
+            [disabled]="isFirstPage() || searching()"
+            (click)="goToPage(currentPage() - 1)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+            Previous
+          </button>
+          <span>Page {{ currentPage() + 1 }} of {{ totalPages() }}</span>
+          <button
+            class="page-button"
+            type="button"
+            [disabled]="isLastPage() || searching()"
+            (click)="goToPage(currentPage() + 1)"
+          >
+            Next
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+          </button>
+        </nav>
+      }
     }
   </div>
 
@@ -68,6 +136,10 @@
       <h2>{{ selectedSong()?.title || "Select a song" }}</h2>
       <p>{{ selectedSong()?.artist || "Choose a track from the library" }}</p>
     </div>
+
+    @if (playbackError()) {
+      <div class="playback-error" role="alert">{{ playbackError() }}</div>
+    }
 
     <audio
       #audioPlayer
@@ -98,7 +170,7 @@
     </div>
 
     <div class="player-controls" aria-label="Playback controls">
-      <button class="control-button" type="button" aria-label="Previous track or restart current track" [disabled]="!selectedSong()" (click)="previousTrack()">
+      <button class="control-button" type="button" aria-label="Previous track or restart current track" [disabled]="!selectedSongInCurrentPage()" (click)="previousTrack()">
         <span class="material-symbols-outlined" aria-hidden="true">skip_previous</span>
       </button>
 
