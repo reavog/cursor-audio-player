@@ -1,28 +1,67 @@
-<main class="app-shell">
-  <header class="app-header" aria-label="Application header">
-    <div>
-      <p class="app-kicker">Spring Boot practice library</p>
-      <h1>
-        @if (isAuthenticated()) {
-          <a class="brand-link" routerLink="/">{{ title }}</a>
-        } @else {
-          {{ title }}
-        }
-      </h1>
-    </div>
+@if (isAuthenticated()) {
+  <div class="music-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand-link" routerLink="/" aria-label="Aura home">
+        <span class="brand-mark" aria-hidden="true">
+          <span class="material-symbols-outlined">graphic_eq</span>
+        </span>
+        <span>Aura</span>
+      </a>
 
-    @if (isAuthenticated()) {
-      <div class="header-actions">
-        <p class="signed-in-as">
-          Signed in as <strong>{{ username() }}</strong>
-        </p>
-        <button class="logout-button" type="button" (click)="logout()">
+      <nav class="primary-nav">
+        <a class="nav-item is-active" routerLink="/">
+          <span class="material-symbols-outlined" aria-hidden="true">home</span>
+          Home
+        </a>
+        <a class="nav-item" routerLink="/" fragment="search">
+          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          Search
+        </a>
+        <a class="nav-item" routerLink="/" fragment="library">
+          <span class="material-symbols-outlined" aria-hidden="true">library_music</span>
+          Your library
+        </a>
+      </nav>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">
+          <span>Playlists</span>
+          <button class="sidebar-action" type="button" aria-label="Create playlist">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          </button>
+        </div>
+        <a class="playlist-link" routerLink="/" fragment="library">Liked songs</a>
+        <a class="playlist-link" routerLink="/" fragment="library">Late night focus</a>
+        <a class="playlist-link" routerLink="/" fragment="library">Weekend reset</a>
+      </div>
+
+      <div class="profile-card">
+        <span class="profile-avatar" aria-hidden="true">{{ username()?.charAt(0)?.toUpperCase() || "A" }}</span>
+        <span class="profile-copy">
+          <strong>{{ username() || "Listener" }}</strong>
+          <small>Free account</small>
+        </span>
+        <button class="logout-button" type="button" aria-label="Sign out" (click)="logout()">
           <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-          Sign out
         </button>
       </div>
-    }
-  </header>
+    </aside>
 
-  <router-outlet />
-</main>
+    <main class="content-shell">
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <main class="guest-shell">
+    <header class="guest-header">
+      <a class="brand-link" routerLink="/">
+        <span class="brand-mark" aria-hidden="true">
+          <span class="material-symbols-outlined">graphic_eq</span>
+        </span>
+        <span>Aura</span>
+      </a>
+      <p>Music for every mood.</p>
+    </header>
+    <router-outlet />
+  </main>
+}

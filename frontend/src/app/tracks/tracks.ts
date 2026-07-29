@@ -20,6 +20,10 @@ export class Tracks implements OnInit, OnDestroy {
   readonly currentTime = signal(0);
   readonly loadedDuration = signal(0);
   readonly streamObjectUrl = signal("");
+  readonly searchQuery = signal("");
+  readonly volume = signal(0.75);
+  readonly shuffleEnabled = signal(false);
+  readonly repeatEnabled = signal(false);
 
   readonly selectedSong = computed(() => {
     const selectedId = this.selectedSongId();
@@ -31,6 +35,22 @@ export class Tracks implements OnInit, OnDestroy {
     const apiDuration = this.selectedSong()?.duration ?? 0;
     return loadedDuration > 0 ? loadedDuration : apiDuration;
   });
+
+  readonly filteredSongs = computed(() => {
+    const query = this.searchQuery().trim().toLocaleLowerCase();
+
+    if (!query) {
+      return this.songs();
+    }
+
+    return this.songs().filter((song) =>
+      [song.title, song.artist, song.album].some((value) =>
+        value.toLocaleLowerCase().includes(query),
+      ),
+    );
+  });
+
+  readonly greeting = this.createGreeting();
 
   async ngOnInit(): Promise<void> {
     await this.loadSongs();
@@ -99,6 +119,13 @@ export class Tracks implements OnInit, OnDestroy {
     }
   }
 
+  async playSong(song: Song): Promise<void> {
+    await this.selectSong(song);
+    queueMicrotask(() => {
+      void this.playSelectedSong();
+    });
+  }
+
   async previousTrack(): Promise<void> {
     const songs = this.songs();
     const currentSong = this.selectedSong();
@@ -136,6 +163,51 @@ export class Tracks implements OnInit, OnDestroy {
     this.seekTo(Math.max(audio.currentTime - seconds, 0));
   }
 
+  async nextTrack(): Promise<void> {
+    const songs = this.songs();
+    const currentSong = this.selectedSong();
+
+    if (!currentSong || songs.length === 0) {
+      return;
+    }
+
+    const currentIndex = songs.findIndex((song) => song.id === currentSong.id);
+    const nextIndex = this.shuffleEnabled()
+      ? Math.floor(Math.random() * songs.length)
+      : (currentIndex + 1) % songs.length;
+    const shouldPlay = this.isPlaying();
+
+    await this.selectSong(songs[nextIndex]);
+
+    if (shouldPlay) {
+      queueMicrotask(() => {
+        void this.playSelectedSong();
+      });
+    }
+  }
+
+  updateSearch(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  setVolume(event: Event): void {
+    const volume = Number((event.target as HTMLInputElement).value);
+    this.volume.set(volume);
+
+    const audio = this.audioElement();
+    if (audio) {
+      audio.volume = volume;
+    }
+  }
+
+  toggleShuffle(): void {
+    this.shuffleEnabled.update((enabled) => !enabled);
+  }
+
+  toggleRepeat(): void {
+    this.repeatEnabled.update((enabled) => !enabled);
+  }
+
   seek(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.seekTo(Number(input.value));
@@ -150,7 +222,13 @@ export class Tracks implements OnInit, OnDestroy {
   }
 
   onEnded(): void {
-    this.isPlaying.set(false);
+    if (this.repeatEnabled()) {
+      this.seekTo(0);
+      void this.playSelectedSong();
+      return;
+    }
+
+    void this.nextTrack();
   }
 
   formatDuration(seconds: number): string {
@@ -190,5 +268,19 @@ export class Tracks implements OnInit, OnDestroy {
 
   private audioElement(): HTMLAudioElement | null {
     return this.audioPlayer?.nativeElement ?? null;
+  }
+
+  private createGreeting(): string {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      return "Good morning";
+    }
+
+    if (hour < 18) {
+      return "Good afternoon";
+    }
+
+    return "Good evening";
   }
 }
