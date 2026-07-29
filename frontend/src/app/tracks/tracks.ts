@@ -30,6 +30,7 @@ export class Tracks implements OnInit, OnDestroy {
 
   readonly positionLabel = this.queueService.positionLabel;
   readonly hasNext = this.queueService.hasNext;
+  readonly queue = this.queueService.queue;
 
   readonly activeDuration = computed(() => {
     const loadedDuration = this.loadedDuration();

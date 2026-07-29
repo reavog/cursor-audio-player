@@ -100,6 +100,28 @@
       />
     </div>
 
+    @if (queue().length > 0) {
+      <div class="queue-list" aria-label="Playback queue">
+        <p class="queue-list-heading">Queue</p>
+        <ol class="queue-items">
+          @for (song of queue(); track song.id; let i = $index) {
+            <li
+              class="queue-item"
+              [class.queue-item--current]="i === 0"
+              [attr.aria-current]="i === 0 ? 'true' : null"
+            >
+              <span class="queue-item-index">{{ i + 1 }}</span>
+              <span class="queue-item-info">
+                <span class="queue-item-title">{{ song.title || "Untitled" }}</span>
+                <span class="queue-item-artist">{{ song.artist || "Unknown" }}</span>
+              </span>
+              <span class="queue-item-duration">{{ formatDuration(song.duration) }}</span>
+            </li>
+          }
+        </ol>
+      </div>
+    }
+
     <div class="player-controls" aria-label="Playback controls">
       <button class="control-button" type="button" aria-label="Previous track or restart current track" [disabled]="!selectedSong()" (click)="previousTrack()">
         <span class="material-symbols-outlined" aria-hidden="true">skip_previous</span>
