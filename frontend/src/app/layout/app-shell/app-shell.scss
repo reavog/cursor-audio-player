@@ -1,0 +1,168 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  height: 100vh;
+  padding: var(--space-md);
+}
+
+.sidebar-slot {
+  grid-row: 1;
+  grid-column: 1;
+  min-height: 0;
+}
+
+.main-column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-md);
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+}
+
+.content-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-md);
+  min-height: 0;
+}
+
+.main-panel,
+.queue-panel-shell,
+.toolbar-panel {
+  min-height: 0;
+}
+
+.main-panel {
+  overflow: hidden;
+}
+
+.queue-slot {
+  min-height: 0;
+}
+
+.queue-drawer-toolbar {
+  display: none;
+}
+
+.player-slot {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.scrim,
+.queue-scrim {
+  display: none;
+}
+
+.app-shell--sidebar-collapsed {
+  grid-template-columns: 88px minmax(0, 1fr);
+}
+
+@media (max-width: 1199px) {
+  .content-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .queue-slot {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 40;
+    width: min(360px, 100%);
+    height: 100%;
+    padding: var(--space-md);
+    pointer-events: none;
+    transform: translateX(104%);
+    transition: transform 220ms ease;
+  }
+
+  .app-shell--queue-open .queue-slot {
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .queue-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    border: 0;
+    background: rgba(23, 26, 54, 0.28);
+    cursor: pointer;
+  }
+
+  .queue-drawer-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg) 0;
+  }
+
+  .queue-drawer-toolbar p {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .close-queue {
+    min-height: 36px;
+    padding: 0 12px;
+    color: var(--accent);
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-sm);
+  }
+
+  .sidebar-slot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: min(300px, 88vw);
+    height: 100%;
+    padding: var(--space-sm);
+    transform: translateX(-104%);
+    transition: transform 220ms ease;
+  }
+
+  .app-shell--sidebar-open .sidebar-slot {
+    transform: translateX(0);
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    border: 0;
+    background: rgba(23, 26, 54, 0.28);
+    cursor: pointer;
+  }
+
+  .main-column {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-slot,
+  .queue-slot {
+    transition: none;
+  }
+}

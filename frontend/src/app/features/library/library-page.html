@@ -1,0 +1,64 @@
+<section class="library-page" aria-labelledby="library-title">
+  <header class="library-header">
+    <div>
+      <p class="eyebrow">Library</p>
+      <h1 id="library-title">Songs</h1>
+      <p class="meta">{{ songCount() }} songs</p>
+    </div>
+
+    <div class="library-actions">
+      <button class="play-all" type="button" [disabled]="songCount() === 0" (click)="playAll()">
+        <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+        Play all
+      </button>
+      <app-icon-button icon="refresh" label="Refresh songs" (pressed)="refresh()" />
+      <app-icon-button icon="more_horiz" label="Sort and options" />
+    </div>
+  </header>
+
+  @if (usingFallback() && !loading() && !error()) {
+    <p class="fallback-note" role="status">
+      Showing sample songs because the API library is empty. Playback requires API tracks.
+    </p>
+  }
+
+  @if (loading()) {
+    <app-loading-state message="Loading songs…" />
+  } @else if (error()) {
+    <app-empty-state
+      tone="error"
+      icon="error"
+      title="Unable to load songs"
+      [message]="error()!"
+    />
+  } @else if (songCount() === 0) {
+    <app-empty-state
+      icon="library_music"
+      title="No songs yet"
+      message="Upload or add songs on the server to fill your Melody library."
+    />
+  } @else {
+    <div class="song-table" role="table" aria-label="Songs">
+      <div class="song-heading" role="row" aria-hidden="true">
+        <span>#</span>
+        <span></span>
+        <span>Title</span>
+        <span>Artist</span>
+        <span>Album</span>
+        <span>Time</span>
+        <span></span>
+      </div>
+
+      @for (song of songs(); track song.id; let index = $index) {
+        <app-song-row
+          [song]="song"
+          [index]="index"
+          [active]="currentSong()?.id === song.id"
+          [playing]="currentSong()?.id === song.id && isPlaying()"
+          (playRequested)="playSong($event)"
+          (favoriteToggled)="toggleFavorite($event)"
+        />
+      }
+    </div>
+  }
+</section>

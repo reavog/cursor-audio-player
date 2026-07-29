@@ -1,0 +1,56 @@
+<div class="top-search-bar">
+  <app-icon-button
+    class="menu-toggle"
+    icon="library_music"
+    label="Open navigation"
+    variant="ghost"
+    (pressed)="menuOpenRequested.emit()"
+  />
+
+  <form class="search-field" role="search" (submit)="$event.preventDefault(); submitSearch()">
+    <span class="material-symbols-outlined search-icon" aria-hidden="true">search</span>
+    <label class="sr-only" for="melody-search">Search songs, artists, albums</label>
+    <input
+      id="melody-search"
+      type="search"
+      name="q"
+      placeholder="Search songs, artists, albums…"
+      autocomplete="off"
+      [ngModel]="query()"
+      (ngModelChange)="onInput($event)"
+    />
+    @if (query()) {
+      <button class="clear-button" type="button" aria-label="Clear search" (click)="clearQuery()">
+        <span class="material-symbols-outlined" aria-hidden="true">clear</span>
+      </button>
+    }
+  </form>
+
+  <div class="toolbar-actions">
+    <app-icon-button icon="tune" label="Filter results" variant="ghost" />
+    <app-icon-button icon="settings" label="Appearance settings" variant="ghost" />
+
+    <div class="account">
+      <button
+        class="avatar-button"
+        type="button"
+        [attr.aria-expanded]="accountMenuOpen()"
+        aria-haspopup="menu"
+        aria-label="Account menu"
+        (click)="toggleAccountMenu()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">person</span>
+        <span class="avatar-name">{{ username() }}</span>
+      </button>
+
+      @if (accountMenuOpen()) {
+        <div class="account-menu" role="menu">
+          <button type="button" role="menuitem" (click)="logout()">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            Sign out
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

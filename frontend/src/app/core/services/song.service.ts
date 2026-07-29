@@ -1,7 +1,8 @@
 import { Injectable, inject } from "@angular/core";
-import { AuthService } from "./core/auth/auth.service";
+import { AuthService } from "../auth/auth.service";
+import { Song } from "../models/song.model";
 
-export interface Song {
+interface SongApiDto {
   id: string;
   title: string;
   artist: string;
@@ -32,7 +33,14 @@ export class SongService {
       throw new Error("Unable to load songs from the API.");
     }
 
-    return (await response.json()) as Song[];
+    const payload = (await response.json()) as SongApiDto[];
+    return payload.map((song) => ({
+      id: String(song.id),
+      title: song.title,
+      artist: song.artist,
+      album: song.album,
+      duration: song.duration,
+    }));
   }
 
   async createAuthenticatedStreamUrl(songId: string): Promise<string> {
@@ -53,5 +61,9 @@ export class SongService {
 
     const blob = await response.blob();
     return URL.createObjectURL(blob);
+  }
+
+  isStreamableSongId(songId: string): boolean {
+    return !songId.startsWith("mock-");
   }
 }

@@ -1,0 +1,120 @@
+<footer class="now-playing-bar" aria-label="Now playing">
+  <audio
+    #audioPlayer
+    preload="metadata"
+    [src]="streamObjectUrl()"
+    (loadedmetadata)="onLoadedMetadata(audioPlayer)"
+    (timeupdate)="onTimeUpdate(audioPlayer)"
+    (ended)="onEnded()"
+  ></audio>
+
+  <div class="now-playing-bar__left">
+    <app-album-artwork
+      size="md"
+      [title]="currentSong()?.title || 'No song selected'"
+      [artworkUrl]="currentSong()?.artworkUrl"
+      [artworkColor]="currentSong()?.artworkColor"
+    />
+    <div class="track-copy">
+      <p class="track-title">{{ currentSong()?.title || "Select a song" }}</p>
+      <p class="track-artist">{{ currentSong()?.artist || "Choose a track from your library" }}</p>
+    </div>
+    <app-icon-button
+      [icon]="currentSong()?.favorite ? 'favorite' : 'favorite_border'"
+      [label]="currentSong()?.favorite ? 'Remove from favorites' : 'Add to favorites'"
+      variant="ghost"
+      [disabled]="!currentSong()"
+      (pressed)="toggleFavorite()"
+    />
+  </div>
+
+  <div class="now-playing-bar__center">
+    <div class="transport" aria-label="Playback controls">
+      <app-icon-button
+        icon="shuffle"
+        label="Toggle shuffle"
+        variant="ghost"
+        [class.is-on]="shuffle()"
+        (pressed)="toggleShuffle()"
+      />
+      <app-icon-button
+        icon="skip_previous"
+        label="Previous track"
+        variant="ghost"
+        [disabled]="!currentSong()"
+        (pressed)="previous()"
+      />
+      <button
+        class="play-button"
+        type="button"
+        [disabled]="!currentSong()"
+        [attr.aria-label]="isPlaying() ? 'Pause' : 'Play'"
+        (click)="togglePlay()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">
+          {{ isPlaying() ? "pause" : "play_arrow" }}
+        </span>
+      </button>
+      <app-icon-button
+        icon="skip_next"
+        label="Next track"
+        variant="ghost"
+        [disabled]="!currentSong()"
+        (pressed)="next()"
+      />
+      <app-icon-button
+        [icon]="repeatIcon()"
+        label="Cycle repeat mode"
+        variant="ghost"
+        [class.is-on]="repeat() !== 'off'"
+        (pressed)="cycleRepeat()"
+      />
+    </div>
+
+    <div class="seek-row">
+      <span>{{ currentTimeLabel() }}</span>
+      <input
+        class="seek-bar"
+        type="range"
+        min="0"
+        step="1"
+        [max]="activeDuration() || 0"
+        [value]="currentTime()"
+        [disabled]="!currentSong()"
+        aria-label="Seek playback position"
+        (input)="seek($event)"
+      />
+      <span>{{ durationLabel() }}</span>
+    </div>
+  </div>
+
+  <div class="now-playing-bar__right">
+    <app-icon-button
+      [icon]="muted() || volume() === 0 ? 'volume_off' : 'volume_up'"
+      [label]="muted() ? 'Unmute' : 'Mute'"
+      variant="ghost"
+      (pressed)="toggleMute()"
+    />
+    <input
+      class="volume-bar"
+      type="range"
+      min="0"
+      max="1"
+      step="0.01"
+      [value]="volume()"
+      aria-label="Volume"
+      (input)="setVolume($event)"
+    />
+    <app-icon-button icon="settings" label="Select playback device" variant="ghost" />
+    <app-icon-button
+      icon="queue_music"
+      [label]="`Open queue (${queueCount()} songs)`"
+      variant="ghost"
+      (pressed)="toggleQueue()"
+    />
+  </div>
+
+  @if (error()) {
+    <p class="player-error" role="status">{{ error() }}</p>
+  }
+</footer>

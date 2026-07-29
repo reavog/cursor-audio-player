@@ -1,0 +1,12 @@
+<div
+  class="empty-state"
+  [class.empty-state--error]="tone() === 'error'"
+  [attr.role]="tone() === 'error' ? 'alert' : null"
+  [attr.aria-live]="tone() === 'error' ? null : 'polite'"
+>
+  <span class="material-symbols-outlined" aria-hidden="true">{{ icon() }}</span>
+  <div>
+    <p class="empty-title">{{ title() }}</p>
+    <p class="empty-message">{{ message() }}</p>
+  </div>
+</div>

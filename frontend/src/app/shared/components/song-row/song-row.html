@@ -1,0 +1,43 @@
+<div
+  class="song-row"
+  [class.is-active]="active()"
+  [class.is-compact]="compact()"
+  role="row"
+  [attr.aria-current]="active() ? 'true' : null"
+>
+  <button class="song-row__main" type="button" (click)="onActivate()">
+    <span class="song-row__index" aria-hidden="true">
+      @if (active() && playing()) {
+        <span class="material-symbols-outlined eq-icon">equalizer</span>
+      } @else {
+        {{ index() + 1 }}
+      }
+    </span>
+
+    <app-album-artwork
+      size="sm"
+      [title]="song().title"
+      [artworkUrl]="song().artworkUrl"
+      [artworkColor]="song().artworkColor"
+    />
+
+    <span class="song-row__title-block">
+      <span class="song-row__title">{{ song().title || "Untitled song" }}</span>
+      <span class="song-row__artist-mobile">{{ song().artist || "Unknown artist" }}</span>
+    </span>
+
+    <span class="song-row__artist">{{ song().artist || "Unknown artist" }}</span>
+    <span class="song-row__album">{{ song().album || "Unknown album" }}</span>
+    <span class="song-row__duration">{{ durationLabel() }}</span>
+  </button>
+
+  <div class="song-row__actions">
+    <app-icon-button
+      [icon]="song().favorite ? 'favorite' : 'favorite_border'"
+      [label]="song().favorite ? 'Remove from favorites' : 'Add to favorites'"
+      variant="ghost"
+      (pressed)="onFavorite($event)"
+    />
+    <app-icon-button icon="more_horiz" label="More actions" variant="ghost" />
+  </div>
+</div>

@@ -1,0 +1,71 @@
+<aside class="sidebar" [class.sidebar--collapsed]="collapsed()" aria-label="Main navigation">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <span class="material-symbols-outlined">graphic_eq</span>
+    </div>
+    @if (!collapsed()) {
+      <div class="brand-copy">
+        <p class="brand-kicker">Minimal Glass</p>
+        <p class="brand-name">Melody</p>
+      </div>
+    }
+  </div>
+
+  <nav class="nav" aria-label="Primary">
+    @for (item of navItems; track item.label + item.link) {
+      <a
+        class="nav-item"
+        [routerLink]="item.link"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        [attr.title]="item.label"
+        (click)="onNavClick()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+        @if (!collapsed()) {
+          <span>{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  @if (!collapsed()) {
+    <section class="playlists" aria-labelledby="sidebar-playlists-title">
+      <div class="playlists-header">
+        <h2 id="sidebar-playlists-title">Playlists</h2>
+        <app-icon-button
+          icon="add"
+          label="Add playlist"
+          variant="ghost"
+          (pressed)="$event.stopPropagation()"
+        />
+      </div>
+
+      <ul class="playlist-list">
+        @for (playlist of visiblePlaylists(); track playlist.id) {
+          <li>
+            <a
+              class="playlist-item"
+              [routerLink]="['/playlists', playlist.id]"
+              (click)="onNavClick()"
+            >
+              <span
+                class="playlist-swatch"
+                [style.background]="playlist.artworkColor"
+                aria-hidden="true"
+              ></span>
+              <span class="playlist-meta">
+                <span class="playlist-name">{{ playlist.name }}</span>
+                <span class="playlist-count">{{ playlist.songCount }} songs</span>
+              </span>
+            </a>
+          </li>
+        } @empty {
+          <li class="playlist-empty">No playlists yet</li>
+        }
+      </ul>
+
+      <a class="view-all" routerLink="/playlists" (click)="onNavClick()">View all playlists</a>
+    </section>
+  }
+</aside>

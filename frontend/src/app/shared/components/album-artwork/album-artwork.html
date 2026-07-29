@@ -1,0 +1,14 @@
+<div
+  class="album-artwork"
+  [class.album-artwork--sm]="size() === 'sm'"
+  [class.album-artwork--lg]="size() === 'lg'"
+  [style.background]="artworkColor() || undefined"
+  [attr.aria-label]="title()"
+  role="img"
+>
+  @if (artworkUrl()) {
+    <img [src]="artworkUrl()!" [alt]="title()" />
+  } @else {
+    <span class="material-symbols-outlined" aria-hidden="true">music_note</span>
+  }
+</div>

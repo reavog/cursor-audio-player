@@ -4,7 +4,12 @@ import { ForgotPassword } from "./features/auth/forgot-password/forgot-password"
 import { Login } from "./features/auth/login/login";
 import { OtpVerify } from "./features/auth/otp-verify/otp-verify";
 import { Register } from "./features/auth/register/register";
-import { Tracks } from "./tracks/tracks";
+import { AppShell } from "./layout/app-shell/app-shell";
+import { LibraryPage } from "./features/library/library-page";
+import { SearchPage } from "./features/search/search-page";
+import { PlaylistsPage } from "./features/playlists/playlists-page";
+import { PlaylistDetailPage } from "./features/playlists/playlist-detail-page";
+import { QueuePage } from "./features/queue/queue-page";
 
 export const routes: Routes = [
   {
@@ -29,8 +34,30 @@ export const routes: Routes = [
   },
   {
     path: "",
-    component: Tracks,
+    component: AppShell,
     canActivate: [authGuard],
+    children: [
+      {
+        path: "",
+        component: LibraryPage,
+      },
+      {
+        path: "search",
+        component: SearchPage,
+      },
+      {
+        path: "playlists",
+        component: PlaylistsPage,
+      },
+      {
+        path: "playlists/:id",
+        component: PlaylistDetailPage,
+      },
+      {
+        path: "queue",
+        component: QueuePage,
+      },
+    ],
   },
   {
     path: "**",

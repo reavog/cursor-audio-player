@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  min-height: 0;
+}
+
+.glass-panel {
+  height: 100%;
+  min-height: 0;
+  background: var(--glass-background);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-panel--strong {
+  background: var(--glass-background-strong);
+}

@@ -1,22 +1,10 @@
-import { Component, computed, inject } from "@angular/core";
-import { RouterLink, RouterOutlet } from "@angular/router";
-import { AuthService } from "./core/auth/auth.service";
+import { Component } from "@angular/core";
+import { RouterOutlet } from "@angular/router";
 
 @Component({
   selector: "app-root",
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet],
   templateUrl: "./app.html",
   styleUrls: ["./app.scss"],
 })
-export class App {
-  private readonly authService = inject(AuthService);
-
-  title = "Audio Player";
-
-  readonly isAuthenticated = this.authService.isAuthenticated;
-  readonly username = computed(() => this.authService.user()?.username ?? null);
-
-  logout(): void {
-    this.authService.logout();
-  }
-}
+export class App {}

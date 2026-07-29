@@ -1,0 +1,134 @@
+:host {
+  display: block;
+}
+
+.song-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-medium);
+  transition: background-color 180ms ease;
+}
+
+.song-row:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.song-row.is-active {
+  background: var(--accent-soft);
+}
+
+.song-row__main {
+  display: grid;
+  grid-template-columns: 40px 40px minmax(140px, 1.5fr) minmax(110px, 1fr) minmax(110px, 1fr) 56px;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 12px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+}
+
+.song-row__main:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+}
+
+.song-row__index {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.eq-icon {
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+.song-row__title-block {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.song-row__title {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-row.is-active .song-row__title {
+  color: var(--accent);
+}
+
+.song-row__artist,
+.song-row__album,
+.song-row__duration,
+.song-row__artist-mobile {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-row__artist-mobile {
+  display: none;
+}
+
+.song-row__duration {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.song-row__actions {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.song-row:hover .song-row__actions,
+.song-row:focus-within .song-row__actions,
+.song-row.is-active .song-row__actions {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .song-row__main {
+    grid-template-columns: 32px 40px minmax(0, 1fr) 48px;
+    gap: var(--space-sm);
+  }
+
+  .song-row__artist,
+  .song-row__album {
+    display: none;
+  }
+
+  .song-row__artist-mobile {
+    display: block;
+  }
+
+  .song-row__actions {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .song-row,
+  .song-row__actions {
+    transition: none;
+  }
+}

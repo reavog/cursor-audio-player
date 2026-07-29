@@ -1,0 +1,112 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.queue-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-lg);
+}
+
+.queue-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.meta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.queue-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.queue-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.queue-item {
+  display: grid;
+  grid-template-columns: 20px 40px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 8px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+}
+
+.queue-item:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.queue-item.is-active {
+  background: var(--accent-soft);
+}
+
+.queue-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+}
+
+.drag-handle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.queue-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.title,
+.artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.artist,
+.duration {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.duration {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
