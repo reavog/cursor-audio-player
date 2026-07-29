@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from "@angular/core";
+import { QueueService } from "../queue.service";
 import { Song, SongService } from "../songservice";
 
 @Component({
@@ -10,6 +11,7 @@ export class Tracks implements OnInit, OnDestroy {
   @ViewChild("audioPlayer") private audioPlayer?: ElementRef<HTMLAudioElement>;
 
   private readonly songService = inject(SongService);
+  private readonly queueService = inject(QueueService);
   private objectUrl: string | null = null;
 
   readonly songs = signal<Song[]>([]);
@@ -25,6 +27,9 @@ export class Tracks implements OnInit, OnDestroy {
     const selectedId = this.selectedSongId();
     return this.songs().find((song) => song.id === selectedId) ?? null;
   });
+
+  readonly positionLabel = this.queueService.positionLabel;
+  readonly hasNext = this.queueService.hasNext;
 
   readonly activeDuration = computed(() => {
     const loadedDuration = this.loadedDuration();
@@ -49,7 +54,7 @@ export class Tracks implements OnInit, OnDestroy {
       this.songs.set(songs);
 
       if (songs.length > 0 && this.selectedSongId() === null) {
-        await this.selectSong(songs[0]);
+        await this.prepareSong(songs[0]);
       }
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : "Unable to load songs.");
@@ -58,41 +63,39 @@ export class Tracks implements OnInit, OnDestroy {
     }
   }
 
-  async selectSong(song: Song): Promise<void> {
-    if (song.id === this.selectedSongId() && this.streamObjectUrl()) {
+  async startSongAt(song: Song, index: number): Promise<void> {
+    const started = this.queueService.startFrom(this.songs(), index, "library");
+    if (!started) {
       return;
     }
 
-    this.selectedSongId.set(song.id);
-    this.resetPlaybackState();
-
-    try {
-      const objectUrl = await this.songService.createAuthenticatedStreamUrl(song.id);
-      this.revokeObjectUrl();
-      this.objectUrl = objectUrl;
-      this.streamObjectUrl.set(objectUrl);
-      queueMicrotask(() => this.audioElement()?.load());
-    } catch (error) {
-      this.streamObjectUrl.set("");
-      this.error.set(error instanceof Error ? error.message : "Unable to prepare audio playback.");
-    }
+    await this.prepareSong(started);
+    await this.playCurrent(true);
   }
 
   async playSelectedSong(): Promise<void> {
     const audio = this.audioElement();
+    const selected = this.selectedSong();
 
-    if (!audio || !this.selectedSong() || !this.streamObjectUrl()) {
+    if (!selected) {
+      return;
+    }
+
+    if (!this.queueService.currentSong()) {
+      const index = this.songs().findIndex((song) => song.id === selected.id);
+      if (index < 0) {
+        return;
+      }
+      this.queueService.startFrom(this.songs(), index, "library");
+      await this.prepareSong(selected);
+    }
+
+    if (!audio || !this.streamObjectUrl()) {
       return;
     }
 
     if (audio.paused) {
-      try {
-        await audio.play();
-        this.isPlaying.set(true);
-        this.error.set(null);
-      } catch {
-        this.error.set("Playback could not start. Check that the audio file is available.");
-      }
+      await this.playCurrent(true);
     } else {
       audio.pause();
       this.isPlaying.set(false);
@@ -100,11 +103,10 @@ export class Tracks implements OnInit, OnDestroy {
   }
 
   async previousTrack(): Promise<void> {
-    const songs = this.songs();
     const currentSong = this.selectedSong();
     const audio = this.audioElement();
 
-    if (!currentSong || songs.length === 0) {
+    if (!currentSong) {
       return;
     }
 
@@ -113,17 +115,61 @@ export class Tracks implements OnInit, OnDestroy {
       return;
     }
 
-    const currentIndex = songs.findIndex((song) => song.id === currentSong.id);
-    const previousIndex = Math.max(currentIndex - 1, 0);
-    const wasPlaying = this.isPlaying();
-
-    await this.selectSong(songs[previousIndex]);
-
-    if (wasPlaying) {
-      queueMicrotask(() => {
-        void this.playSelectedSong();
-      });
+    if (!this.queueService.currentSong()) {
+      const songs = this.songs();
+      const currentIndex = songs.findIndex((song) => song.id === currentSong.id);
+      const previousIndex = Math.max(currentIndex - 1, 0);
+      const wasPlaying = this.isPlaying();
+      await this.prepareSong(songs[previousIndex]);
+      if (wasPlaying) {
+        await this.playCurrent(true);
+      }
+      return;
     }
+
+    if (!this.queueService.hasPrevious()) {
+      this.seekTo(0);
+      return;
+    }
+
+    const wasPlaying = this.isPlaying();
+    const previous = this.queueService.playPrevious();
+    if (!previous) {
+      return;
+    }
+
+    await this.prepareSong(previous);
+    if (wasPlaying) {
+      await this.playCurrent(true);
+    }
+  }
+
+  async nextTrack(): Promise<void> {
+    if (!this.queueService.currentSong()) {
+      const selected = this.selectedSong();
+      if (!selected) {
+        return;
+      }
+      const index = this.songs().findIndex((song) => song.id === selected.id);
+      if (index < 0) {
+        return;
+      }
+      this.queueService.startFrom(this.songs(), index, "library");
+    }
+
+    if (!this.queueService.hasNext()) {
+      this.isPlaying.set(false);
+      return;
+    }
+
+    const next = this.queueService.advance();
+    if (!next) {
+      this.isPlaying.set(false);
+      return;
+    }
+
+    await this.prepareSong(next);
+    await this.playCurrent(true);
   }
 
   rewind(seconds = 10): void {
@@ -150,7 +196,7 @@ export class Tracks implements OnInit, OnDestroy {
   }
 
   onEnded(): void {
-    this.isPlaying.set(false);
+    void this.advanceOnEnd();
   }
 
   formatDuration(seconds: number): string {
@@ -162,6 +208,69 @@ export class Tracks implements OnInit, OnDestroy {
     const minutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  }
+
+  private async advanceOnEnd(): Promise<void> {
+    if (!this.queueService.currentSong()) {
+      this.isPlaying.set(false);
+      return;
+    }
+
+    const next = this.queueService.advance();
+    if (!next) {
+      this.isPlaying.set(false);
+      return;
+    }
+
+    await this.prepareSong(next);
+    await this.playCurrent(true);
+  }
+
+  private async prepareSong(song: Song): Promise<void> {
+    if (song.id === this.selectedSongId() && this.streamObjectUrl()) {
+      this.seekTo(0);
+      return;
+    }
+
+    this.selectedSongId.set(song.id);
+    this.resetPlaybackState();
+
+    try {
+      const objectUrl = await this.songService.createAuthenticatedStreamUrl(song.id);
+      this.revokeObjectUrl();
+      this.objectUrl = objectUrl;
+      this.streamObjectUrl.set(objectUrl);
+      await new Promise<void>((resolve) => {
+        queueMicrotask(() => {
+          this.audioElement()?.load();
+          resolve();
+        });
+      });
+    } catch (error) {
+      this.streamObjectUrl.set("");
+      this.error.set(error instanceof Error ? error.message : "Unable to prepare audio playback.");
+    }
+  }
+
+  private async playCurrent(forcePlay: boolean): Promise<void> {
+    const audio = this.audioElement();
+
+    if (!audio || !this.selectedSong() || !this.streamObjectUrl()) {
+      return;
+    }
+
+    if (!forcePlay && !audio.paused) {
+      return;
+    }
+
+    try {
+      await audio.play();
+      this.isPlaying.set(true);
+      this.error.set(null);
+    } catch {
+      this.isPlaying.set(false);
+      this.error.set("Playback could not start. Check that the audio file is available.");
+    }
   }
 
   private seekTo(time: number): void {

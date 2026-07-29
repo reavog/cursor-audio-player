@@ -43,7 +43,7 @@
             role="listitem"
             [class.is-active]="song.id === selectedSongId()"
             [attr.aria-current]="song.id === selectedSongId() ? 'true' : null"
-            (click)="selectSong(song)"
+            (click)="startSongAt(song, index)"
           >
             <span class="track-index">{{ index + 1 }}</span>
             <span class="track-title">
@@ -67,6 +67,9 @@
       <p class="eyebrow">Now playing</p>
       <h2>{{ selectedSong()?.title || "Select a song" }}</h2>
       <p>{{ selectedSong()?.artist || "Choose a track from the library" }}</p>
+      @if (positionLabel()) {
+        <p class="queue-position" aria-live="polite">{{ positionLabel() }}</p>
+      }
     </div>
 
     <audio
@@ -108,6 +111,10 @@
 
       <button class="play-button" type="button" [disabled]="!selectedSong()" [attr.aria-label]="isPlaying() ? 'Pause selected song' : 'Play selected song'" (click)="playSelectedSong()">
         <span class="material-symbols-outlined" aria-hidden="true">{{ isPlaying() ? "pause" : "play_arrow" }}</span>
+      </button>
+
+      <button class="control-button" type="button" aria-label="Next track" [disabled]="!selectedSong() || !hasNext()" (click)="nextTrack()">
+        <span class="material-symbols-outlined" aria-hidden="true">skip_next</span>
       </button>
     </div>
   </aside>

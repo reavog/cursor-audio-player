@@ -219,9 +219,17 @@ h2 {
   margin-bottom: 6px;
 }
 
-.now-playing-copy p:last-child {
+.now-playing-copy > p {
   margin: 0;
   color: var(--text-secondary);
+}
+
+.queue-position {
+  margin-top: var(--space-sm);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .seek-group {
