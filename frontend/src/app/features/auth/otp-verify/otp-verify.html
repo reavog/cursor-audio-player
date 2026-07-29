@@ -1,0 +1,68 @@
+<section class="auth-page" aria-labelledby="otp-title">
+  <div class="auth-card">
+    <p class="auth-eyebrow">One-time code</p>
+    <h1 id="otp-title">Enter your code</h1>
+    <p class="auth-copy">
+      Use the 6-character code from your email (or the server console in local development). You can
+      optionally set a new password while signing in.
+    </p>
+
+    <form class="auth-form" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label for="otp-identifier">Username or email</label>
+        <input
+          id="otp-identifier"
+          name="identifier"
+          type="text"
+          autocomplete="username"
+          required
+          [(ngModel)]="identifier"
+        />
+      </div>
+
+      <div class="field">
+        <label for="otp-code">6-character code</label>
+        <input
+          id="otp-code"
+          name="otp"
+          type="text"
+          inputmode="text"
+          autocomplete="one-time-code"
+          maxlength="6"
+          minlength="6"
+          required
+          [(ngModel)]="otp"
+        />
+      </div>
+
+      <div class="field">
+        <label for="otp-new-password">New password (optional)</label>
+        <input
+          id="otp-new-password"
+          name="newPassword"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          [(ngModel)]="newPassword"
+        />
+      </div>
+
+      @if (error()) {
+        <p class="auth-error" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">error</span>
+          {{ error() }}
+        </p>
+      }
+
+      <button class="primary-button" type="submit" [disabled]="submitting()">
+        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+        {{ submitting() ? "Verifying..." : "Sign in with code" }}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <a routerLink="/forgot-password">Resend code</a>
+      <a routerLink="/login">Back to sign in</a>
+    </div>
+  </div>
+</section>

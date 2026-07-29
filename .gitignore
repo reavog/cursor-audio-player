@@ -1,0 +1,59 @@
+# Maven
+/target/
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+nbproject/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven wrapper jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Env
+.env
+dev-env.sh
+.jwt-secret
+frontend/db.json
+
+# Angular / Node
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/
+.cache/
+.sass-cache/
+.history/
+connect.lock
+libpeerconnection.log
+testem.log
+typings/
+__screenshots__/
+*.tsbuildinfo
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test / Coverage
+coverage/
+.nyc_output/

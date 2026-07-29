@@ -1,0 +1,50 @@
+<section class="auth-page" aria-labelledby="login-title">
+  <div class="auth-card">
+    <p class="auth-eyebrow">Welcome back</p>
+    <h1 id="login-title">Sign in</h1>
+    <p class="auth-copy">Use your username or email to open your private library.</p>
+
+    <form class="auth-form" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label for="login-identifier">Username or email</label>
+        <input
+          id="login-identifier"
+          name="identifier"
+          type="text"
+          autocomplete="username"
+          required
+          [(ngModel)]="identifier"
+        />
+      </div>
+
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          [(ngModel)]="password"
+        />
+      </div>
+
+      @if (error()) {
+        <p class="auth-error" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">error</span>
+          {{ error() }}
+        </p>
+      }
+
+      <button class="primary-button" type="submit" [disabled]="submitting()">
+        <span class="material-symbols-outlined" aria-hidden="true">login</span>
+        {{ submitting() ? "Signing in..." : "Sign in" }}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <a routerLink="/forgot-password">Forgot password?</a>
+      <a routerLink="/register">Create an account</a>
+    </div>
+  </div>
+</section>
