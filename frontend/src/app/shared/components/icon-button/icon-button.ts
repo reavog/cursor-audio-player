@@ -10,5 +10,7 @@ export class IconButton {
   readonly label = input.required<string>();
   readonly disabled = input(false);
   readonly variant = input<"default" | "accent" | "ghost">("default");
+  readonly active = input(false);
+  readonly toggle = input(false);
   readonly pressed = output<MouseEvent>();
 }

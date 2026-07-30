@@ -5,17 +5,17 @@
 .now-playing-bar {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(180px, 1.1fr) minmax(280px, 1.4fr) minmax(160px, 1fr);
+  grid-template-columns: minmax(200px, 1.1fr) minmax(320px, 1.5fr) minmax(180px, 1fr);
   align-items: center;
-  gap: var(--space-md);
-  min-height: 92px;
-  padding: 12px var(--space-lg);
+  gap: var(--space-lg);
+  min-height: 96px;
+  padding: 14px var(--space-lg);
   background: var(--glass-background-strong);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-medium);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .now-playing-bar__left,
@@ -26,13 +26,19 @@
   gap: var(--space-sm);
 }
 
+.now-playing-bar__left {
+  gap: var(--space-md);
+  min-width: 0;
+}
+
 .now-playing-bar__center {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .track-copy {
   min-width: 0;
+  flex: 1;
 }
 
 .track-title,
@@ -59,22 +65,32 @@
   place-items: center;
   width: 52px;
   height: 52px;
+  flex-shrink: 0;
   color: white;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(167, 139, 250, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.98), rgba(167, 139, 250, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  box-shadow: 0 10px 28px rgba(139, 92, 246, 0.28);
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.32);
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.play-button .material-symbols-outlined {
+  font-size: 1.7rem;
+  line-height: 1;
 }
 
 .play-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 32px rgba(139, 92, 246, 0.34);
+  box-shadow: 0 16px 36px rgba(139, 92, 246, 0.38);
 }
 
 .play-button:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.28);
 }
 
 .play-button:disabled {
@@ -84,11 +100,15 @@
 
 .play-button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+  box-shadow:
+    0 12px 30px rgba(139, 92, 246, 0.32),
+    0 0 0 4px rgba(139, 92, 246, 0.18);
+  border-color: var(--accent-border);
 }
 
 .transport {
   justify-content: center;
+  gap: var(--space-xs);
 }
 
 .seek-row {
@@ -108,36 +128,59 @@
   cursor: pointer;
 }
 
+.seek-bar:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.seek-bar:focus-visible,
+.volume-bar:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+  border-radius: 999px;
+}
+
 .now-playing-bar__right {
   justify-content: flex-end;
+  gap: var(--space-xs);
 }
 
 .volume-bar {
-  width: 88px;
+  width: 96px;
 }
 
 .player-error {
   position: absolute;
   right: var(--space-lg);
   bottom: calc(100% + 8px);
+  z-index: 2;
   margin: 0;
   padding: 8px 12px;
   color: #9f1239;
   background: rgba(255, 241, 242, 0.92);
   border: 1px solid rgba(251, 113, 133, 0.24);
   border-radius: 12px;
+  box-shadow: var(--shadow-small);
   font-size: 0.82rem;
 }
 
-:host ::ng-deep .is-on .icon-button {
-  color: var(--accent);
-  background: var(--accent-soft);
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 900px) {
   .now-playing-bar {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-sm);
+    min-height: 88px;
     padding: 10px var(--space-md);
   }
 
@@ -153,20 +196,43 @@
 }
 
 @media (max-width: 720px) {
+  .now-playing-bar {
+    gap: 8px;
+    padding: 8px var(--space-sm);
+  }
+
+  .now-playing-bar__left {
+    gap: var(--space-sm);
+  }
+
   .track-artist,
   .seek-row span:first-child,
   .seek-row span:last-child {
     display: none;
   }
 
+  .seek-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .transport app-icon-button:first-child,
   .transport app-icon-button:last-child {
     display: none;
+  }
+
+  .play-button {
+    width: 48px;
+    height: 48px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .play-button {
     transition: none;
+  }
+
+  .play-button:hover:not(:disabled),
+  .play-button:active:not(:disabled) {
+    transform: none;
   }
 }

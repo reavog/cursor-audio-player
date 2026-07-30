@@ -8,6 +8,8 @@
     (ended)="onEnded()"
   ></audio>
 
+  <p class="sr-only" aria-live="polite">{{ nowPlayingAnnouncement() }}</p>
+
   <div class="now-playing-bar__left">
     <app-album-artwork
       size="md"
@@ -23,6 +25,8 @@
       [icon]="currentSong()?.favorite ? 'favorite' : 'favorite_border'"
       [label]="currentSong()?.favorite ? 'Remove from favorites' : 'Add to favorites'"
       variant="ghost"
+      [toggle]="true"
+      [active]="!!currentSong()?.favorite"
       [disabled]="!currentSong()"
       (pressed)="toggleFavorite()"
     />
@@ -32,9 +36,10 @@
     <div class="transport" aria-label="Playback controls">
       <app-icon-button
         icon="shuffle"
-        label="Toggle shuffle"
+        [label]="shuffleLabel()"
         variant="ghost"
-        [class.is-on]="shuffle()"
+        [toggle]="true"
+        [active]="shuffle()"
         (pressed)="toggleShuffle()"
       />
       <app-icon-button
@@ -64,9 +69,10 @@
       />
       <app-icon-button
         [icon]="repeatIcon()"
-        label="Cycle repeat mode"
+        [label]="repeatLabel()"
         variant="ghost"
-        [class.is-on]="repeat() !== 'off'"
+        [toggle]="true"
+        [active]="repeat() !== 'off'"
         (pressed)="cycleRepeat()"
       />
     </div>
@@ -82,6 +88,7 @@
         [value]="currentTime()"
         [disabled]="!currentSong()"
         aria-label="Seek playback position"
+        [attr.aria-valuetext]="seekValueText()"
         (input)="seek($event)"
       />
       <span>{{ durationLabel() }}</span>
@@ -91,7 +98,7 @@
   <div class="now-playing-bar__right">
     <app-icon-button
       [icon]="muted() || volume() === 0 ? 'volume_off' : 'volume_up'"
-      [label]="muted() ? 'Unmute' : 'Mute'"
+      [label]="muted() || volume() === 0 ? 'Unmute' : 'Mute'"
       variant="ghost"
       (pressed)="toggleMute()"
     />
@@ -103,6 +110,7 @@
       step="0.01"
       [value]="volume()"
       aria-label="Volume"
+      [attr.aria-valuetext]="volumeValueText()"
       (input)="setVolume($event)"
     />
     <app-icon-button icon="settings" label="Select playback device" variant="ghost" />

@@ -60,6 +60,22 @@
   box-shadow: none;
 }
 
+.icon-button--active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.icon-button--ghost.icon-button--active {
+  background: var(--accent-soft);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.icon-button--ghost.icon-button--active:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.16);
+}
+
 .material-symbols-outlined {
   font-size: 1.35rem;
   line-height: 1;
