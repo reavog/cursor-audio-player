@@ -1,0 +1,31 @@
+<section class="playlists-page" aria-labelledby="playlists-title">
+  <header class="playlists-header">
+    <div>
+      <p class="eyebrow">Collections</p>
+      <h1 id="playlists-title">Playlists</h1>
+      <p class="meta">{{ playlistCount() }} playlists</p>
+    </div>
+
+    <div class="playlists-actions">
+      <app-icon-button
+        icon="add"
+        label="Add playlist"
+        (pressed)="addPlaylist()"
+      />
+    </div>
+  </header>
+
+  @if (playlistCount() === 0) {
+    <app-empty-state
+      icon="library_music"
+      title="No playlists yet"
+      message="Create a playlist or wait for your library to load sample collections."
+    />
+  } @else {
+    <div class="playlist-grid">
+      @for (playlist of playlists(); track playlist.id) {
+        <app-playlist-card [playlist]="playlist" />
+      }
+    </div>
+  }
+</section>
