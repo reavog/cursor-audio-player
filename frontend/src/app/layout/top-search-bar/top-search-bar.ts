@@ -1,5 +1,8 @@
-import { Component, computed, inject, output, signal } from "@angular/core";
+import { Component, DestroyRef, computed, inject, output, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { NavigationEnd, Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
+import { filter } from "rxjs";
 import { AuthService } from "../../core/auth/auth.service";
 import { IconButton } from "../../shared/components/icon-button/icon-button";
 
@@ -11,6 +14,8 @@ import { IconButton } from "../../shared/components/icon-button/icon-button";
 })
 export class TopSearchBar {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly menuOpenRequested = output<void>();
   readonly searchSubmitted = output<string>();
@@ -18,6 +23,16 @@ export class TopSearchBar {
   readonly query = signal("");
   readonly username = computed(() => this.authService.user()?.username ?? "Account");
   readonly accountMenuOpen = signal(false);
+
+  constructor() {
+    this.syncQueryFromRoute();
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.syncQueryFromRoute());
+  }
 
   onInput(value: string): void {
     this.query.set(value);
@@ -39,5 +54,19 @@ export class TopSearchBar {
   logout(): void {
     this.accountMenuOpen.set(false);
     this.authService.logout();
+  }
+
+  private syncQueryFromRoute(): void {
+    const treeUrl = this.router.url.split("?")[0];
+    if (treeUrl !== "/search" && !treeUrl.endsWith("/search")) {
+      return;
+    }
+
+    let route = this.router.routerState.root;
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+
+    this.query.set(route.snapshot.queryParamMap.get("q") ?? "");
   }
 }

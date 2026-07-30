@@ -1,0 +1,143 @@
+<section class="search-page" aria-labelledby="search-title">
+  <header class="search-header">
+    <div>
+      <p class="eyebrow">Search</p>
+      <h1 id="search-title">
+        @if (query()) {
+          Results for “{{ query() }}”
+        } @else {
+          Search
+        }
+      </h1>
+      @if (query() && hasResults() && !loading() && !error()) {
+        <p class="meta">
+          {{ results().songs.length }} songs ·
+          {{ results().artists.length }} artists ·
+          {{ results().albums.length }} albums ·
+          {{ results().playlists.length }} playlists
+        </p>
+      }
+    </div>
+  </header>
+
+  @if (!query()) {
+    <app-empty-state
+      icon="search"
+      title="Start searching"
+      message="Type a song, artist, album, or playlist name in the top search bar."
+    />
+  } @else if (loading()) {
+    <app-loading-state message="Searching your library…" />
+  } @else if (error()) {
+    <app-empty-state
+      tone="error"
+      icon="error"
+      title="Unable to search"
+      [message]="error()!"
+    />
+  } @else if (!hasResults()) {
+    <app-empty-state
+      icon="search"
+      title="No results"
+      [message]="'Nothing matched “' + query() + '”. Try another title, artist, album, or playlist.'"
+    />
+  } @else {
+    @if (results().top; as top) {
+      <section class="top-result" aria-labelledby="top-result-title">
+        <h2 id="top-result-title" class="section-title">Top result</h2>
+        <div class="top-card">
+          <app-album-artwork
+            [title]="topTitle(top)"
+            [artworkUrl]="topArtworkUrl(top)"
+            [artworkColor]="topArtworkColor(top)"
+            size="lg"
+          />
+          <div class="top-copy">
+            <p class="type-label">{{ topTypeLabel(top) }}</p>
+            <h3 class="top-name">{{ topTitle(top) }}</h3>
+            <p class="top-meta">{{ topMeta(top) }}</p>
+            <button class="play-button" type="button" (click)="playTopResult()">
+              <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+              Play
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (results().songs.length > 0) {
+      <section class="result-section" aria-labelledby="songs-title">
+        <h2 id="songs-title" class="section-title">Songs</h2>
+        <div class="song-list" role="list">
+          @for (song of results().songs; track song.id; let index = $index) {
+            <app-song-row
+              [song]="song"
+              [index]="index"
+              [active]="currentSong()?.id === song.id"
+              [playing]="currentSong()?.id === song.id && isPlaying()"
+              (playRequested)="playSong($event)"
+              (favoriteToggled)="toggleFavorite($event)"
+            />
+          }
+        </div>
+      </section>
+    }
+
+    @if (results().artists.length > 0) {
+      <section class="result-section" aria-labelledby="artists-title">
+        <h2 id="artists-title" class="section-title">Artists</h2>
+        <div class="card-grid">
+          @for (artist of results().artists; track artist.id) {
+            <article class="result-card">
+              <app-album-artwork
+                [title]="artist.name"
+                [artworkColor]="artist.artworkColor"
+                size="md"
+              />
+              <span class="card-name">{{ artist.name }}</span>
+              <span class="card-meta">{{ artist.songCount }} songs</span>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (results().albums.length > 0) {
+      <section class="result-section" aria-labelledby="albums-title">
+        <h2 id="albums-title" class="section-title">Albums</h2>
+        <div class="card-grid">
+          @for (album of results().albums; track album.id) {
+            <article class="result-card">
+              <app-album-artwork
+                [title]="album.name"
+                [artworkColor]="album.artworkColor"
+                size="md"
+              />
+              <span class="card-name">{{ album.name }}</span>
+              <span class="card-meta">{{ album.artist }} · {{ album.songCount }} songs</span>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (results().playlists.length > 0) {
+      <section class="result-section" aria-labelledby="playlists-title">
+        <h2 id="playlists-title" class="section-title">Playlists</h2>
+        <div class="card-grid">
+          @for (playlist of results().playlists; track playlist.id) {
+            <a class="result-card result-card--link" [routerLink]="['/playlists', playlist.id]">
+              <span
+                class="playlist-swatch"
+                [style.background]="playlist.artworkColor"
+                aria-hidden="true"
+              ></span>
+              <span class="card-name">{{ playlist.name }}</span>
+              <span class="card-meta">{{ playlist.songCount }} songs</span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  }
+</section>
