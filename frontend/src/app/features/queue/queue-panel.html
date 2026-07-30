@@ -5,7 +5,7 @@
       <p class="meta">{{ queueCount() }} songs · {{ remainingLabel() }} remaining</p>
     </div>
     <app-icon-button
-      icon="clear"
+      icon="clear_all"
       label="Clear queue"
       variant="ghost"
       [disabled]="queueCount() === 0"
@@ -20,16 +20,36 @@
       message="Play a song or use Play all to fill the upcoming list."
     />
   } @else {
-    <ul class="queue-list">
+    <ul class="queue-list" role="list">
       @for (row of rows(); track row.item.queueId) {
-        <li>
+        <li
+          class="queue-row"
+          [class.is-active]="row.active"
+          [class.is-dragging]="dragFromIndex() === row.index"
+          [class.is-drop-target]="dropTargetIndex() === row.index && dragFromIndex() !== row.index"
+          [attr.aria-current]="row.active ? 'true' : null"
+          (dragover)="onDragOver(row.index, $event)"
+          (drop)="onDrop(row.index, $event)"
+        >
+          <button
+            class="drag-handle"
+            type="button"
+            draggable="true"
+            aria-label="Drag to reorder"
+            (dragstart)="onDragStart(row.index, $event)"
+            (dragend)="onDragEnd()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">drag_handle</span>
+          </button>
+
           <button
             class="queue-item"
             type="button"
-            [class.is-active]="row.active"
             (click)="playItem(row.item.queueId)"
           >
-            <span class="drag-handle material-symbols-outlined" aria-hidden="true">drag_handle</span>
+            @if (row.active) {
+              <span class="now-playing-icon material-symbols-outlined" aria-hidden="true">graphic_eq</span>
+            }
             <app-album-artwork
               size="sm"
               [title]="row.song?.title || 'Unknown song'"
@@ -42,13 +62,29 @@
             </span>
             <span class="duration">{{ formatSongDuration(row.song) }}</span>
           </button>
-          <app-icon-button
-            class="remove"
-            icon="close"
-            label="Remove from queue"
-            variant="ghost"
-            (pressed)="removeItem(row.item.queueId, $event)"
-          />
+
+          <div class="queue-actions">
+            <app-icon-button
+              icon="keyboard_arrow_up"
+              label="Move up in queue"
+              variant="ghost"
+              [disabled]="row.index === 0"
+              (pressed)="moveItem(row.index, -1, $event)"
+            />
+            <app-icon-button
+              icon="keyboard_arrow_down"
+              label="Move down in queue"
+              variant="ghost"
+              [disabled]="row.index === queueCount() - 1"
+              (pressed)="moveItem(row.index, 1, $event)"
+            />
+            <app-icon-button
+              icon="close"
+              label="Remove from queue"
+              variant="ghost"
+              (pressed)="removeItem(row.item.queueId, $event)"
+            />
+          </div>
         </li>
       }
     </ul>

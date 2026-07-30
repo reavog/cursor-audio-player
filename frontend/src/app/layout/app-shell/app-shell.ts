@@ -1,4 +1,13 @@
-import { Component, OnDestroy, OnInit, inject } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  effect,
+  inject,
+} from "@angular/core";
 import { Router, RouterOutlet } from "@angular/router";
 import { MusicLibraryService } from "../../core/services/music-library.service";
 import { PlaylistService } from "../../core/services/playlist.service";
@@ -17,6 +26,8 @@ import { NowPlayingBar } from "../../features/player/now-playing-bar/now-playing
   styleUrls: ["./app-shell.scss"],
 })
 export class AppShell implements OnInit, OnDestroy {
+  @ViewChild("queueCloseButton") private queueCloseButton?: ElementRef<HTMLButtonElement>;
+
   private readonly library = inject(MusicLibraryService);
   private readonly playlists = inject(PlaylistService);
   private readonly player = inject(AudioPlayerService);
@@ -29,6 +40,9 @@ export class AppShell implements OnInit, OnDestroy {
   readonly queueDrawerOpen = this.playerUi.queueDrawerOpen;
 
   private mediaQuery?: MediaQueryList;
+  private previousFocus: HTMLElement | null = null;
+  private wasQueueDrawerOpen = false;
+
   private readonly onViewportChange = (event: MediaQueryListEvent | MediaQueryList): void => {
     this.playerUi.setSidebarCollapsed(event.matches);
     if (!event.matches) {
@@ -36,6 +50,29 @@ export class AppShell implements OnInit, OnDestroy {
       this.playerUi.closeQueueDrawer();
     }
   };
+
+  constructor() {
+    effect(() => {
+      const open = this.queueDrawerOpen();
+      const isNarrow = this.mediaQuery?.matches ?? false;
+
+      if (open && !this.wasQueueDrawerOpen && isNarrow) {
+        this.previousFocus =
+          document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        queueMicrotask(() => this.queueCloseButton?.nativeElement.focus());
+      }
+
+      if (!open && this.wasQueueDrawerOpen) {
+        const restoreTarget =
+          this.previousFocus ??
+          (document.getElementById("queue-drawer-toggle") as HTMLElement | null);
+        queueMicrotask(() => restoreTarget?.focus());
+        this.previousFocus = null;
+      }
+
+      this.wasQueueDrawerOpen = open;
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     this.mediaQuery = window.matchMedia("(max-width: 1199px)");
@@ -50,6 +87,18 @@ export class AppShell implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.mediaQuery?.removeEventListener("change", this.onViewportChange);
     this.player.destroy();
+  }
+
+  @HostListener("document:keydown.escape")
+  onEscape(): void {
+    if (this.queueDrawerOpen()) {
+      this.closeQueue();
+      return;
+    }
+
+    if (this.sidebarDrawerOpen()) {
+      this.closeSidebar();
+    }
   }
 
   openSidebar(): void {

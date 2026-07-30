@@ -1,10 +1,13 @@
 <button
   class="icon-button"
   type="button"
+  [attr.id]="buttonId() || null"
   [class.icon-button--accent]="variant() === 'accent'"
   [class.icon-button--ghost]="variant() === 'ghost'"
   [disabled]="disabled()"
   [attr.aria-label]="label()"
+  [attr.aria-expanded]="ariaExpanded() ?? null"
+  [attr.aria-controls]="ariaControls() || null"
   (click)="pressed.emit($event)"
 >
   <span class="material-symbols-outlined" aria-hidden="true">{{ icon() }}</span>

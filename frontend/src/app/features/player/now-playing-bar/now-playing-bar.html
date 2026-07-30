@@ -107,9 +107,12 @@
     />
     <app-icon-button icon="settings" label="Select playback device" variant="ghost" />
     <app-icon-button
+      buttonId="queue-drawer-toggle"
       icon="queue_music"
       [label]="`Open queue (${queueCount()} songs)`"
       variant="ghost"
+      [ariaExpanded]="queueDrawerOpen()"
+      ariaControls="queue-drawer"
       (pressed)="toggleQueue()"
     />
   </div>
