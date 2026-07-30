@@ -10,6 +10,7 @@ export class IconButton {
   readonly label = input.required<string>();
   readonly disabled = input(false);
   readonly variant = input<"default" | "accent" | "ghost">("default");
+  readonly size = input<"default" | "compact">("default");
   readonly buttonId = input<string | undefined>(undefined);
   readonly ariaExpanded = input<boolean | undefined>(undefined);
   readonly ariaControls = input<string | undefined>(undefined);

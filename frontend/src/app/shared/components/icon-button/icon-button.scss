@@ -60,6 +60,15 @@
   box-shadow: none;
 }
 
+.icon-button--compact {
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.icon-button--compact .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
 .material-symbols-outlined {
   font-size: 1.35rem;
   line-height: 1;

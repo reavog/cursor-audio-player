@@ -47,9 +47,9 @@ h2 {
 
 .queue-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   padding: 2px;
   border-radius: var(--radius-medium);
   border-top: 2px solid transparent;
@@ -75,7 +75,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  width: 24px;
   height: 36px;
   padding: 0;
   color: var(--text-muted);
@@ -101,18 +101,19 @@ h2 {
 }
 
 .drag-handle .material-symbols-outlined {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 
 .queue-item {
   position: relative;
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 42px;
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   min-height: 56px;
-  padding: 6px 8px;
+  padding: 6px 4px;
   color: inherit;
   text-align: left;
   background: transparent;
@@ -132,7 +133,7 @@ h2 {
 }
 
 .queue-row.is-active .queue-item {
-  grid-template-columns: 18px 40px minmax(0, 1fr) 42px;
+  grid-template-columns: 16px 40px minmax(0, 1fr);
 }
 
 .now-playing-icon {
@@ -164,20 +165,23 @@ h2 {
   font-size: 0.78rem;
 }
 
+.artist .dot {
+  margin: 0 4px;
+}
+
 .duration {
   font-variant-numeric: tabular-nums;
-  text-align: right;
 }
 
 .queue-actions {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
+  flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
-  .queue-actions app-icon-button:nth-child(1),
-  .queue-actions app-icon-button:nth-child(2) {
+  .move-control {
     display: none;
   }
 }

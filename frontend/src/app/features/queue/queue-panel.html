@@ -8,6 +8,7 @@
       icon="clear_all"
       label="Clear queue"
       variant="ghost"
+      size="compact"
       [disabled]="queueCount() === 0"
       (pressed)="clearQueue()"
     />
@@ -58,23 +59,30 @@
             />
             <span class="queue-copy">
               <span class="title">{{ row.song?.title || "Unknown song" }}</span>
-              <span class="artist">{{ row.song?.artist || "Unknown artist" }}</span>
+              <span class="artist">
+                {{ row.song?.artist || "Unknown artist" }}
+                <span class="dot" aria-hidden="true">·</span>
+                <span class="duration">{{ formatSongDuration(row.song) }}</span>
+              </span>
             </span>
-            <span class="duration">{{ formatSongDuration(row.song) }}</span>
           </button>
 
           <div class="queue-actions">
             <app-icon-button
+              class="move-control"
               icon="keyboard_arrow_up"
               label="Move up in queue"
               variant="ghost"
+              size="compact"
               [disabled]="row.index === 0"
               (pressed)="moveItem(row.index, -1, $event)"
             />
             <app-icon-button
+              class="move-control"
               icon="keyboard_arrow_down"
               label="Move down in queue"
               variant="ghost"
+              size="compact"
               [disabled]="row.index === queueCount() - 1"
               (pressed)="moveItem(row.index, 1, $event)"
             />
@@ -82,6 +90,7 @@
               icon="close"
               label="Remove from queue"
               variant="ghost"
+              size="compact"
               (pressed)="removeItem(row.item.queueId, $event)"
             />
           </div>

@@ -4,6 +4,7 @@
   [attr.id]="buttonId() || null"
   [class.icon-button--accent]="variant() === 'accent'"
   [class.icon-button--ghost]="variant() === 'ghost'"
+  [class.icon-button--compact]="size() === 'compact'"
   [disabled]="disabled()"
   [attr.aria-label]="label()"
   [attr.aria-expanded]="ariaExpanded() ?? null"
