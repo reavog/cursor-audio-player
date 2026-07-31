@@ -1,8 +1,11 @@
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
 <div
   class="app-shell"
   [class.app-shell--sidebar-collapsed]="sidebarCollapsed()"
   [class.app-shell--sidebar-open]="sidebarDrawerOpen()"
   [class.app-shell--queue-open]="queueDrawerOpen()"
+  [class.app-shell--sheet-open]="nowPlayingSheetOpen()"
 >
   @if (sidebarDrawerOpen()) {
     <button
@@ -13,7 +16,13 @@
     ></button>
   }
 
-  <div class="sidebar-slot">
+  <div
+    #sidebarSlot
+    class="sidebar-slot"
+    [attr.role]="sidebarDrawerOpen() ? 'dialog' : null"
+    [attr.aria-modal]="sidebarDrawerOpen() ? 'true' : null"
+    [attr.aria-label]="sidebarDrawerOpen() ? 'Navigation menu' : null"
+  >
     <app-glass-panel ariaLabel="Navigation sidebar">
       <app-sidebar
         [collapsed]="sidebarCollapsed() && !sidebarDrawerOpen()"
@@ -33,10 +42,19 @@
 
     <div class="content-row">
       <app-glass-panel class="main-panel" ariaLabel="Main content">
-        <router-outlet />
+        <div id="main-content" tabindex="-1">
+          <router-outlet />
+        </div>
       </app-glass-panel>
 
-      <div class="queue-slot" id="queue-drawer">
+      <div
+        #queueSlot
+        class="queue-slot"
+        id="queue-drawer"
+        [attr.role]="queueDrawerOpen() && isNarrowViewport() ? 'dialog' : null"
+        [attr.aria-modal]="queueDrawerOpen() && isNarrowViewport() ? 'true' : null"
+        [attr.aria-label]="queueDrawerOpen() && isNarrowViewport() ? 'Playback queue' : null"
+      >
         @if (queueDrawerOpen()) {
           <button
             class="queue-scrim"
@@ -49,11 +67,13 @@
         <app-glass-panel class="queue-panel-shell" ariaLabel="Playback queue">
           <div class="queue-drawer-body">
             <div class="queue-drawer-toolbar">
+              <div class="queue-sheet-handle" aria-hidden="true"></div>
               <p>Queue</p>
               <button
                 #queueCloseButton
                 class="close-queue"
                 type="button"
+                aria-label="Close queue"
                 (click)="closeQueue()"
               >
                 Close
@@ -69,4 +89,6 @@
   <div class="player-slot">
     <app-now-playing-bar />
   </div>
+
+  <app-now-playing-sheet />
 </div>

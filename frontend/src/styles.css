@@ -90,6 +90,10 @@ input {
   font: inherit;
 }
 
+body.melody-overlay-open {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

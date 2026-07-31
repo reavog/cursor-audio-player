@@ -19,6 +19,7 @@
         routerLinkActive="is-active"
         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
         [attr.title]="item.label"
+        [attr.aria-label]="collapsed() ? item.label : null"
         (click)="onNavClick()"
       >
         <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>

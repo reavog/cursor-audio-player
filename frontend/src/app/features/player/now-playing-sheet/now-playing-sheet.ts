@@ -2,35 +2,49 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   ViewChild,
   computed,
+  effect,
   inject,
-  signal,
 } from "@angular/core";
 import { AudioPlayerService } from "../../../core/services/audio-player.service";
 import { MusicLibraryService } from "../../../core/services/music-library.service";
 import { PlayerUiService } from "../../../core/services/player-ui.service";
 import { formatDuration } from "../../../shared/utils/format-duration";
+import { trapFocus } from "../../../shared/utils/trap-focus";
 import { AlbumArtwork } from "../../../shared/components/album-artwork/album-artwork";
 import { IconButton } from "../../../shared/components/icon-button/icon-button";
 
 @Component({
-  selector: "app-now-playing-bar",
+  selector: "app-now-playing-sheet",
   imports: [AlbumArtwork, IconButton],
-  templateUrl: "./now-playing-bar.html",
-  styleUrls: ["./now-playing-bar.scss"],
+  templateUrl: "./now-playing-sheet.html",
+  styleUrls: ["./now-playing-sheet.scss"],
 })
-export class NowPlayingBar implements AfterViewInit, OnDestroy {
-  @ViewChild("audioPlayer") private audioPlayer?: ElementRef<HTMLAudioElement>;
+export class NowPlayingSheet implements AfterViewInit, OnDestroy {
+  @ViewChild("sheetRoot") private sheetRoot?: ElementRef<HTMLElement>;
+  @ViewChild("closeButton") private closeButton?: ElementRef<HTMLButtonElement>;
 
   private readonly player = inject(AudioPlayerService);
   private readonly library = inject(MusicLibraryService);
   private readonly playerUi = inject(PlayerUiService);
 
-  private compactQuery?: MediaQueryList;
+  private releaseTrap: (() => void) | null = null;
+  private previousFocus: HTMLElement | null = null;
+  private wasOpen = false;
 
-  readonly compact = signal(false);
+  readonly open = this.playerUi.nowPlayingSheetOpen;
+  readonly isPlaying = this.player.isPlaying;
+  readonly currentTime = this.player.currentTime;
+  readonly duration = this.player.duration;
+  readonly volume = this.player.volume;
+  readonly muted = this.player.muted;
+  readonly shuffle = this.player.shuffle;
+  readonly repeat = this.player.repeat;
+  readonly queueCount = this.player.queueCount;
+  readonly error = this.player.error;
 
   readonly currentSong = computed(() => {
     const current = this.player.currentSong();
@@ -40,17 +54,6 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
 
     return this.library.getSongById(current.id) ?? current;
   });
-  readonly isPlaying = this.player.isPlaying;
-  readonly currentTime = this.player.currentTime;
-  readonly duration = this.player.duration;
-  readonly volume = this.player.volume;
-  readonly muted = this.player.muted;
-  readonly shuffle = this.player.shuffle;
-  readonly repeat = this.player.repeat;
-  readonly streamObjectUrl = this.player.streamObjectUrl;
-  readonly error = this.player.error;
-  readonly queueCount = this.player.queueCount;
-  readonly queueDrawerOpen = this.playerUi.queueDrawerOpen;
 
   readonly activeDuration = computed(() => {
     const loaded = this.duration();
@@ -78,9 +81,7 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
     return `${Math.round(this.volume() * 100)} percent`;
   });
 
-  readonly shuffleLabel = computed(() =>
-    this.shuffle() ? "Shuffle on" : "Shuffle off",
-  );
+  readonly shuffleLabel = computed(() => (this.shuffle() ? "Shuffle on" : "Shuffle off"));
 
   readonly repeatLabel = computed(() => {
     switch (this.repeat()) {
@@ -93,54 +94,52 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
     }
   });
 
-  readonly nowPlayingAnnouncement = computed(() => {
-    const song = this.currentSong();
-    if (!song) {
-      return "";
-    }
+  constructor() {
+    effect(() => {
+      const isOpen = this.open();
 
-    return `Now playing: ${song.title} by ${song.artist}`;
-  });
+      if (isOpen && !this.wasOpen) {
+        this.previousFocus =
+          document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        document.body.classList.add("melody-overlay-open");
+        queueMicrotask(() => {
+          this.closeButton?.nativeElement.focus();
+          this.attachTrap();
+        });
+      }
 
-  readonly expandLabel = computed(() => {
-    const song = this.currentSong();
-    if (!song) {
-      return "Expand now playing";
-    }
+      if (!isOpen && this.wasOpen) {
+        this.releaseTrap?.();
+        this.releaseTrap = null;
+        document.body.classList.remove("melody-overlay-open");
+        queueMicrotask(() => this.previousFocus?.focus());
+        this.previousFocus = null;
+      }
 
-    return `Expand now playing: ${song.title} by ${song.artist}`;
-  });
-
-  private readonly onCompactChange = (event: MediaQueryListEvent | MediaQueryList): void => {
-    this.compact.set(event.matches);
-  };
+      this.wasOpen = isOpen;
+    });
+  }
 
   ngAfterViewInit(): void {
-    const audio = this.audioPlayer?.nativeElement;
-    if (audio) {
-      this.player.registerAudioElement(audio);
+    if (this.open()) {
+      this.attachTrap();
     }
-
-    this.compactQuery = window.matchMedia("(max-width: 720px)");
-    this.onCompactChange(this.compactQuery);
-    this.compactQuery.addEventListener("change", this.onCompactChange);
   }
 
   ngOnDestroy(): void {
-    const audio = this.audioPlayer?.nativeElement;
-    if (audio) {
-      this.player.unregisterAudioElement(audio);
-    }
-
-    this.compactQuery?.removeEventListener("change", this.onCompactChange);
+    this.releaseTrap?.();
+    document.body.classList.remove("melody-overlay-open");
   }
 
-  openSheet(): void {
-    if (!this.currentSong()) {
-      return;
+  @HostListener("document:keydown.escape")
+  onEscape(): void {
+    if (this.open()) {
+      this.close();
     }
+  }
 
-    this.playerUi.openNowPlayingSheet();
+  close(): void {
+    this.playerUi.closeNowPlayingSheet();
   }
 
   togglePlay(): void {
@@ -184,19 +183,16 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
     }
   }
 
-  toggleQueue(): void {
-    this.playerUi.toggleQueueDrawer();
+  openQueue(): void {
+    this.playerUi.closeNowPlayingSheet();
+    this.playerUi.openQueueDrawer();
   }
 
-  onLoadedMetadata(audio: HTMLAudioElement): void {
-    this.player.onLoadedMetadata(audio);
-  }
-
-  onTimeUpdate(audio: HTMLAudioElement): void {
-    this.player.onTimeUpdate(audio);
-  }
-
-  onEnded(): void {
-    void this.player.onEnded();
+  private attachTrap(): void {
+    this.releaseTrap?.();
+    const root = this.sheetRoot?.nativeElement;
+    if (root) {
+      this.releaseTrap = trapFocus(root);
+    }
   }
 }

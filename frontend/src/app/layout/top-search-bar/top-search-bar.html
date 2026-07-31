@@ -1,7 +1,7 @@
 <div class="top-search-bar">
   <app-icon-button
     class="menu-toggle"
-    icon="library_music"
+    icon="menu"
     label="Open navigation"
     variant="ghost"
     (pressed)="menuOpenRequested.emit()"
@@ -30,12 +30,14 @@
     <app-icon-button icon="tune" label="Filter results" variant="ghost" />
     <app-icon-button icon="settings" label="Appearance settings" variant="ghost" />
 
-    <div class="account">
+    <div class="account" #accountRoot>
       <button
+        #accountButton
         class="avatar-button"
         type="button"
         [attr.aria-expanded]="accountMenuOpen()"
         aria-haspopup="menu"
+        aria-controls="account-menu"
         aria-label="Account menu"
         (click)="toggleAccountMenu()"
       >
@@ -44,7 +46,7 @@
       </button>
 
       @if (accountMenuOpen()) {
-        <div class="account-menu" role="menu">
+        <div id="account-menu" class="account-menu" role="menu">
           <button type="button" role="menuitem" (click)="logout()">
             <span class="material-symbols-outlined" aria-hidden="true">logout</span>
             Sign out

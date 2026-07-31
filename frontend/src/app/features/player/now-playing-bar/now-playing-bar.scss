@@ -31,14 +31,39 @@
   min-width: 0;
 }
 
+.expand-hit {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+}
+
+.expand-hit:disabled {
+  cursor: default;
+}
+
+.expand-hit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+}
+
 .now-playing-bar__center {
   display: grid;
   gap: 10px;
 }
 
 .track-copy {
+  display: grid;
   min-width: 0;
   flex: 1;
+  gap: 2px;
 }
 
 .track-title,
@@ -189,42 +214,68 @@
     order: 3;
   }
 
-  .now-playing-bar__right .volume-bar,
-  .now-playing-bar__right app-icon-button:nth-child(3) {
+  .volume-bar,
+  .device-button {
     display: none;
   }
 }
 
 @media (max-width: 720px) {
   .now-playing-bar {
+    grid-template-columns: minmax(0, 1fr) 48px 44px;
+    align-items: center;
     gap: 8px;
-    padding: 8px var(--space-sm);
+    min-height: 72px;
+    padding: 8px 10px;
   }
 
   .now-playing-bar__left {
+    grid-column: 1;
     gap: var(--space-sm);
   }
 
-  .track-artist,
-  .seek-row span:first-child,
-  .seek-row span:last-child {
-    display: none;
+  .expand-hit {
+    gap: var(--space-sm);
+    width: 100%;
   }
 
-  .seek-row {
-    grid-template-columns: minmax(0, 1fr);
+  .favorite-desktop,
+  .volume-controls,
+  .volume-bar,
+  .device-button,
+  .seek-row,
+  .transport-extra,
+  .track-artist {
+    display: none !important;
   }
 
-  .transport app-icon-button:first-child,
-  .transport app-icon-button:last-child {
-    display: none;
+  .now-playing-bar__center {
+    grid-column: 2;
+    order: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .transport {
+    gap: 0;
+  }
+
+  .now-playing-bar__right {
+    grid-column: 3;
+    justify-content: center;
   }
 
   .play-button {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .play-button .material-symbols-outlined {
+    font-size: 1.45rem;
   }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .play-button {

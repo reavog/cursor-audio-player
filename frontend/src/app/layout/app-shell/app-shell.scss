@@ -3,6 +3,26 @@
   min-height: 100vh;
 }
 
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  background: var(--glass-background-strong);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-medium);
+  text-decoration: none;
+  transform: translateY(-120%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
@@ -45,6 +65,13 @@
   overflow: hidden;
 }
 
+#main-content {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  outline: none;
+}
+
 .queue-slot {
   display: flex;
   flex-direction: column;
@@ -75,6 +102,10 @@
 .queue-drawer-toolbar {
   display: none;
   flex-shrink: 0;
+}
+
+.queue-sheet-handle {
+  display: none;
 }
 
 .player-slot {
@@ -128,6 +159,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-sm);
     padding: var(--space-md) var(--space-lg) 0;
   }
 
@@ -189,14 +221,54 @@
   }
 
   .queue-slot {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    padding: var(--space-sm);
+    height: min(78vh, 640px);
+    padding: 0;
+    transform: translateY(104%);
+  }
+
+  .app-shell--queue-open .queue-slot {
+    transform: translateY(0);
+  }
+
+  .queue-panel-shell {
+    border-radius: var(--radius-extra-large) var(--radius-extra-large) 0 0;
+  }
+
+  .queue-drawer-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-top: var(--space-sm);
+  }
+
+  .queue-sheet-handle {
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 0 auto 8px;
+    background: rgba(95, 99, 128, 0.28);
+    border-radius: 999px;
+    flex-basis: 100%;
+  }
+
+  .queue-drawer-toolbar p {
+    margin-right: auto;
+    padding-left: var(--space-lg);
+  }
+
+  .close-queue {
+    margin-right: var(--space-md);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar-slot,
-  .queue-slot {
+  .queue-slot,
+  .skip-link {
     transition: none;
   }
 }

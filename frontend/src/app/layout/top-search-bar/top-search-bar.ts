@@ -1,4 +1,14 @@
-import { Component, DestroyRef, computed, inject, output, signal } from "@angular/core";
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  ViewChild,
+  computed,
+  inject,
+  output,
+  signal,
+} from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
@@ -13,6 +23,9 @@ import { IconButton } from "../../shared/components/icon-button/icon-button";
   styleUrls: ["./top-search-bar.scss"],
 })
 export class TopSearchBar {
+  @ViewChild("accountRoot") private accountRoot?: ElementRef<HTMLElement>;
+  @ViewChild("accountButton") private accountButton?: ElementRef<HTMLButtonElement>;
+
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -51,9 +64,36 @@ export class TopSearchBar {
     this.accountMenuOpen.update((open) => !open);
   }
 
+  closeAccountMenu(): void {
+    if (!this.accountMenuOpen()) {
+      return;
+    }
+
+    this.accountMenuOpen.set(false);
+    queueMicrotask(() => this.accountButton?.nativeElement.focus());
+  }
+
   logout(): void {
     this.accountMenuOpen.set(false);
     this.authService.logout();
+  }
+
+  @HostListener("document:keydown.escape")
+  onEscape(): void {
+    this.closeAccountMenu();
+  }
+
+  @HostListener("document:click", ["$event"])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.accountMenuOpen()) {
+      return;
+    }
+
+    const root = this.accountRoot?.nativeElement;
+    const target = event.target;
+    if (root && target instanceof Node && !root.contains(target)) {
+      this.closeAccountMenu();
+    }
   }
 
   private syncQueryFromRoute(): void {

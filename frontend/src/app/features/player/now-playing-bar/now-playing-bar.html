@@ -1,4 +1,8 @@
-<footer class="now-playing-bar" aria-label="Now playing">
+<footer
+  class="now-playing-bar"
+  [class.now-playing-bar--mini]="compact()"
+  aria-label="Now playing"
+>
   <audio
     #audioPlayer
     preload="metadata"
@@ -11,17 +15,27 @@
   <p class="sr-only" aria-live="polite">{{ nowPlayingAnnouncement() }}</p>
 
   <div class="now-playing-bar__left">
-    <app-album-artwork
-      size="md"
-      [title]="currentSong()?.title || 'No song selected'"
-      [artworkUrl]="currentSong()?.artworkUrl"
-      [artworkColor]="currentSong()?.artworkColor"
-    />
-    <div class="track-copy">
-      <p class="track-title">{{ currentSong()?.title || "Select a song" }}</p>
-      <p class="track-artist">{{ currentSong()?.artist || "Choose a track from your library" }}</p>
-    </div>
+    <button
+      class="expand-hit"
+      type="button"
+      [attr.aria-label]="expandLabel()"
+      [disabled]="!currentSong()"
+      (click)="openSheet()"
+    >
+      <app-album-artwork
+        [size]="compact() ? 'sm' : 'md'"
+        [title]="currentSong()?.title || 'No song selected'"
+        [artworkUrl]="currentSong()?.artworkUrl"
+        [artworkColor]="currentSong()?.artworkColor"
+      />
+      <span class="track-copy">
+        <span class="track-title">{{ currentSong()?.title || "Select a song" }}</span>
+        <span class="track-artist">{{ currentSong()?.artist || "Choose a track from your library" }}</span>
+      </span>
+    </button>
+
     <app-icon-button
+      class="favorite-desktop"
       [icon]="currentSong()?.favorite ? 'favorite' : 'favorite_border'"
       [label]="currentSong()?.favorite ? 'Remove from favorites' : 'Add to favorites'"
       variant="ghost"
@@ -35,6 +49,7 @@
   <div class="now-playing-bar__center">
     <div class="transport" aria-label="Playback controls">
       <app-icon-button
+        class="transport-extra"
         icon="shuffle"
         [label]="shuffleLabel()"
         variant="ghost"
@@ -43,6 +58,7 @@
         (pressed)="toggleShuffle()"
       />
       <app-icon-button
+        class="transport-extra"
         icon="skip_previous"
         label="Previous track"
         variant="ghost"
@@ -61,6 +77,7 @@
         </span>
       </button>
       <app-icon-button
+        class="transport-extra"
         icon="skip_next"
         label="Next track"
         variant="ghost"
@@ -68,6 +85,7 @@
         (pressed)="next()"
       />
       <app-icon-button
+        class="transport-extra"
         [icon]="repeatIcon()"
         [label]="repeatLabel()"
         variant="ghost"
@@ -97,6 +115,7 @@
 
   <div class="now-playing-bar__right">
     <app-icon-button
+      class="volume-controls"
       [icon]="muted() || volume() === 0 ? 'volume_off' : 'volume_up'"
       [label]="muted() || volume() === 0 ? 'Unmute' : 'Mute'"
       variant="ghost"
@@ -113,7 +132,7 @@
       [attr.aria-valuetext]="volumeValueText()"
       (input)="setVolume($event)"
     />
-    <app-icon-button icon="settings" label="Select playback device" variant="ghost" />
+    <app-icon-button class="device-button" icon="settings" label="Select playback device" variant="ghost" />
     <app-icon-button
       buttonId="queue-drawer-toggle"
       icon="queue_music"

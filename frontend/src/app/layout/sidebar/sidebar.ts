@@ -29,7 +29,6 @@ export class Sidebar {
     { label: "Home", icon: "home", link: "/", exact: true },
     { label: "Playlists", icon: "library_music", link: "/playlists" },
     { label: "Queue", icon: "queue_music", link: "/queue" },
-    { label: "Songs", icon: "music_note", link: "/", exact: true },
     { label: "Search", icon: "search", link: "/search" },
   ];
 

@@ -1,0 +1,139 @@
+@if (open()) {
+  <div class="sheet-scrim" (click)="close()" aria-hidden="true"></div>
+
+  <section
+    #sheetRoot
+    class="now-playing-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="now-playing-sheet-title"
+  >
+    <header class="sheet-header">
+      <button
+        #closeButton
+        class="collapse-button"
+        type="button"
+        aria-label="Close now playing"
+        (click)="close()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">keyboard_arrow_down</span>
+      </button>
+      <p class="sheet-kicker">Now playing</p>
+      <app-icon-button
+        icon="queue_music"
+        [label]="`Open queue (${queueCount()} songs)`"
+        variant="ghost"
+        (pressed)="openQueue()"
+      />
+    </header>
+
+    <div class="sheet-art">
+      <app-album-artwork
+        size="lg"
+        [title]="currentSong()?.title || 'No song selected'"
+        [artworkUrl]="currentSong()?.artworkUrl"
+        [artworkColor]="currentSong()?.artworkColor"
+      />
+    </div>
+
+    <div class="sheet-meta">
+      <h2 id="now-playing-sheet-title">{{ currentSong()?.title || "Select a song" }}</h2>
+      <p>{{ currentSong()?.artist || "Choose a track from your library" }}</p>
+      <app-icon-button
+        [icon]="currentSong()?.favorite ? 'favorite' : 'favorite_border'"
+        [label]="currentSong()?.favorite ? 'Remove from favorites' : 'Add to favorites'"
+        variant="ghost"
+        [toggle]="true"
+        [active]="!!currentSong()?.favorite"
+        [disabled]="!currentSong()"
+        (pressed)="toggleFavorite()"
+      />
+    </div>
+
+    <div class="seek-row">
+      <span>{{ currentTimeLabel() }}</span>
+      <input
+        class="seek-bar"
+        type="range"
+        min="0"
+        step="1"
+        [max]="activeDuration() || 0"
+        [value]="currentTime()"
+        [disabled]="!currentSong()"
+        aria-label="Seek playback position"
+        [attr.aria-valuetext]="seekValueText()"
+        (input)="seek($event)"
+      />
+      <span>{{ durationLabel() }}</span>
+    </div>
+
+    <div class="transport" aria-label="Playback controls">
+      <app-icon-button
+        icon="shuffle"
+        [label]="shuffleLabel()"
+        variant="ghost"
+        [toggle]="true"
+        [active]="shuffle()"
+        (pressed)="toggleShuffle()"
+      />
+      <app-icon-button
+        icon="skip_previous"
+        label="Previous track"
+        variant="ghost"
+        [disabled]="!currentSong()"
+        (pressed)="previous()"
+      />
+      <button
+        class="play-button"
+        type="button"
+        [disabled]="!currentSong()"
+        [attr.aria-label]="isPlaying() ? 'Pause' : 'Play'"
+        (click)="togglePlay()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">
+          {{ isPlaying() ? "pause" : "play_arrow" }}
+        </span>
+      </button>
+      <app-icon-button
+        icon="skip_next"
+        label="Next track"
+        variant="ghost"
+        [disabled]="!currentSong()"
+        (pressed)="next()"
+      />
+      <app-icon-button
+        [icon]="repeatIcon()"
+        [label]="repeatLabel()"
+        variant="ghost"
+        [toggle]="true"
+        [active]="repeat() !== 'off'"
+        (pressed)="cycleRepeat()"
+      />
+    </div>
+
+    <div class="volume-row">
+      <app-icon-button
+        [icon]="muted() || volume() === 0 ? 'volume_off' : 'volume_up'"
+        [label]="muted() || volume() === 0 ? 'Unmute' : 'Mute'"
+        variant="ghost"
+        (pressed)="toggleMute()"
+      />
+      <input
+        class="volume-bar"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        [value]="volume()"
+        aria-label="Volume"
+        [attr.aria-valuetext]="volumeValueText()"
+        (input)="setVolume($event)"
+      />
+      <app-icon-button icon="settings" label="Select playback device" variant="ghost" />
+    </div>
+
+    @if (error()) {
+      <p class="sheet-error" role="status">{{ error() }}</p>
+    }
+  </section>
+}

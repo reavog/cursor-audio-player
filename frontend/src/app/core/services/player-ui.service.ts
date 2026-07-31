@@ -39,6 +39,7 @@ export class PlayerUiService {
   }
 
   openQueueDrawer(): void {
+    this.nowPlayingSheetOpenSignal.set(false);
     this.queueDrawerOpenSignal.set(true);
   }
 
@@ -47,10 +48,17 @@ export class PlayerUiService {
   }
 
   toggleQueueDrawer(): void {
-    this.queueDrawerOpenSignal.update((value) => !value);
+    if (this.queueDrawerOpenSignal()) {
+      this.closeQueueDrawer();
+      return;
+    }
+
+    this.openQueueDrawer();
   }
 
   openNowPlayingSheet(): void {
+    this.queueDrawerOpenSignal.set(false);
+    this.sidebarDrawerOpenSignal.set(false);
     this.nowPlayingSheetOpenSignal.set(true);
   }
 
@@ -59,6 +67,11 @@ export class PlayerUiService {
   }
 
   toggleNowPlayingSheet(): void {
-    this.nowPlayingSheetOpenSignal.update((value) => !value);
+    if (this.nowPlayingSheetOpenSignal()) {
+      this.closeNowPlayingSheet();
+      return;
+    }
+
+    this.openNowPlayingSheet();
   }
 }
