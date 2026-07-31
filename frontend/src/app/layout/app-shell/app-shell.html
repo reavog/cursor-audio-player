@@ -36,7 +36,7 @@
         <router-outlet />
       </app-glass-panel>
 
-      <div class="queue-slot">
+      <div class="queue-slot" id="queue-drawer">
         @if (queueDrawerOpen()) {
           <button
             class="queue-scrim"
@@ -47,11 +47,20 @@
         }
 
         <app-glass-panel class="queue-panel-shell" ariaLabel="Playback queue">
-          <div class="queue-drawer-toolbar">
-            <p>Queue</p>
-            <button class="close-queue" type="button" (click)="closeQueue()">Close</button>
+          <div class="queue-drawer-body">
+            <div class="queue-drawer-toolbar">
+              <p>Queue</p>
+              <button
+                #queueCloseButton
+                class="close-queue"
+                type="button"
+                (click)="closeQueue()"
+              >
+                Close
+              </button>
+            </div>
+            <app-queue-panel />
           </div>
-          <app-queue-panel />
         </app-glass-panel>
       </div>
     </div>

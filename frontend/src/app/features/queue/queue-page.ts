@@ -14,10 +14,12 @@ import { QueuePanel } from "./queue-panel";
       :host {
         display: block;
         height: 100%;
+        min-height: 0;
       }
       .queue-page {
         height: 100%;
-        overflow: auto;
+        min-height: 0;
+        overflow: hidden;
       }
     `,
   ],

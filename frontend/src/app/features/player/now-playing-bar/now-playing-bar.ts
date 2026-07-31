@@ -45,6 +45,7 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
   readonly streamObjectUrl = this.player.streamObjectUrl;
   readonly error = this.player.error;
   readonly queueCount = this.player.queueCount;
+  readonly queueDrawerOpen = this.playerUi.queueDrawerOpen;
 
   readonly activeDuration = computed(() => {
     const loaded = this.duration();
