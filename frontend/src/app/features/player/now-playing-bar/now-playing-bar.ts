@@ -57,6 +57,46 @@ export class NowPlayingBar implements AfterViewInit, OnDestroy {
   readonly durationLabel = computed(() => formatDuration(this.activeDuration()));
   readonly repeatIcon = computed(() => (this.repeat() === "one" ? "repeat_one" : "repeat"));
 
+  readonly seekValueText = computed(() => {
+    if (!this.currentSong()) {
+      return "No song selected";
+    }
+
+    return `${this.currentTimeLabel()} of ${this.durationLabel()}`;
+  });
+
+  readonly volumeValueText = computed(() => {
+    if (this.muted() || this.volume() === 0) {
+      return "Muted";
+    }
+
+    return `${Math.round(this.volume() * 100)} percent`;
+  });
+
+  readonly shuffleLabel = computed(() =>
+    this.shuffle() ? "Shuffle on" : "Shuffle off",
+  );
+
+  readonly repeatLabel = computed(() => {
+    switch (this.repeat()) {
+      case "all":
+        return "Repeat all";
+      case "one":
+        return "Repeat one";
+      default:
+        return "Repeat off";
+    }
+  });
+
+  readonly nowPlayingAnnouncement = computed(() => {
+    const song = this.currentSong();
+    if (!song) {
+      return "";
+    }
+
+    return `Now playing: ${song.title} by ${song.artist}`;
+  });
+
   ngAfterViewInit(): void {
     const audio = this.audioPlayer?.nativeElement;
     if (audio) {

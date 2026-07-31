@@ -5,10 +5,12 @@
   [class.icon-button--accent]="variant() === 'accent'"
   [class.icon-button--ghost]="variant() === 'ghost'"
   [class.icon-button--compact]="size() === 'compact'"
+  [class.icon-button--active]="toggle() && active()"
   [disabled]="disabled()"
   [attr.aria-label]="label()"
   [attr.aria-expanded]="ariaExpanded() ?? null"
   [attr.aria-controls]="ariaControls() || null"
+  [attr.aria-pressed]="toggle() ? active() : null"
   (click)="pressed.emit($event)"
 >
   <span class="material-symbols-outlined" aria-hidden="true">{{ icon() }}</span>
